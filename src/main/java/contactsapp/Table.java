@@ -38,7 +38,7 @@ public class Table extends Application {
     public void start(Stage stage) {
         Scene scene = new Scene(new Group());
         stage.setTitle("Contacts App");
-        stage.setWidth(700);
+        stage.setWidth(1000);
         stage.setHeight(600);
  
         final Label label = new Label("Address Book");
@@ -113,9 +113,28 @@ public class Table extends Application {
                 }
             }
         );
+
+        // Fifth Column = Address
+        TableColumn addressCol = new TableColumn("Address");
+        addressCol.setMinWidth(200);
+        addressCol.setCellValueFactory(
+            new PropertyValueFactory<Person, String>("address"));
+        addressCol.setCellFactory(TextFieldTableCell.forTableColumn());
+        addressCol.setOnEditCommit(
+            new EventHandler<CellEditEvent<Person, String>>() {
+                @Override
+                public void handle(CellEditEvent<Person, String> t) {
+                    ((Person) t.getTableView().getItems().get(
+                        t.getTablePosition().getRow())
+                        ).setAddress(t.getNewValue());
+                }
+            }
+        );
  
         table.setItems(data);
-        table.getColumns().addAll(firstNameCol, lastNameCol, phoneNumCol, emailCol);
+        table.getColumns().addAll(firstNameCol, lastNameCol, phoneNumCol, emailCol, addressCol);
+
+
  
         // Text Fields to Add Contact
         final TextField addFirstName = new TextField();
@@ -130,6 +149,9 @@ public class Table extends Application {
         final TextField addEmail = new TextField();
         addEmail.setMaxWidth(emailCol.getPrefWidth());
         addEmail.setPromptText("Email");
+        final TextField addAddress = new TextField();
+        addAddress.setMaxWidth(addressCol.getPrefWidth());
+        addAddress.setPromptText("Address");
  
         final Button addButton = new Button("Add");
         addButton.setOnAction(new EventHandler<ActionEvent>() {
@@ -139,21 +161,33 @@ public class Table extends Application {
                         addFirstName.getText(),
                         addLastName.getText(),
                         addPhoneNumber.getText(),
-                        addEmail.getText()));
+                        addEmail.getText(), 
+                        addAddress.getText()
+                ));
                 addFirstName.clear();
                 addLastName.clear();
-                addLastName.clear();
+                addPhoneNumber.clear();
                 addEmail.clear();
+                addAddress.clear();
             }
         });
 
-        // final Button editButton = new Button("Edit");
-        // editButton.setDisable(true);
+        final Button editButton = new Button("Edit");
+        editButton.setDisable(true);
         // editButton.setOnAction(new EventHandler<ActionEvent>() {
-            
+        //      addButton.setDisable(false);
         // });
+
+        // Add selection listener to TableView(if the user clicks on a row)
+        table.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+            // Perform actions based on the selected item
+            if (newSelection != null) {
+                // addButton.setDisable(true);
+                // editButton.setDisable(true);
+            }
+        });
  
-        hb.getChildren().addAll(addFirstName, addLastName, addPhoneNumber, addEmail, addButton);
+        hb.getChildren().addAll(addFirstName, addLastName, addPhoneNumber, addEmail, addAddress, addButton);
         hb.setSpacing(3);
  
         final VBox vbox = new VBox();
@@ -166,6 +200,14 @@ public class Table extends Application {
         stage.setScene(scene);
         stage.show();
     }
+
+    public void editData(Person person) {
+        person.setFirstName("");
+        person.setLastName("");
+        person.setPhoneNumber("");
+        person.setEmail("");
+        person.setAddress("");
+    }
  
     public static class Person {
  
@@ -173,14 +215,17 @@ public class Table extends Application {
         private final SimpleStringProperty lastName;
         private final SimpleStringProperty phoneNumber;
         private final SimpleStringProperty email;
+        private final SimpleStringProperty address;
  
-        private Person(String fName, String lName, String pNum, String email) {
+        private Person(String fName, String lName, String pNum, String email, String address) {
             this.firstName = new SimpleStringProperty(fName);
             this.lastName = new SimpleStringProperty(lName);
             this.phoneNumber = new SimpleStringProperty(pNum);
             this.email = new SimpleStringProperty(email);
+            this.address = new SimpleStringProperty(address);
         }
  
+        // First Name
         public String getFirstName() {
             return firstName.get();
         }
@@ -189,6 +234,7 @@ public class Table extends Application {
             firstName.set(fName);
         }
  
+        // Last Name
         public String getLastName() {
             return lastName.get();
         }
@@ -197,6 +243,7 @@ public class Table extends Application {
             lastName.set(fName);
         }
 
+        // Phone Number
         public String getPhoneNumber() {
             return phoneNumber.get();
         }
@@ -205,12 +252,22 @@ public class Table extends Application {
             phoneNumber.set(phoneNum);
         }
  
+        // Email
         public String getEmail() {
             return email.get();
         }
  
-        public void setEmail(String fName) {
-            email.set(fName);
+        public void setEmail(String email) {
+            this.email.set(email);
+        }
+
+        // Address
+        public String getAddress() {
+            return address.get();
+        }
+
+        public void setAddress(String address) {
+            this.address.set(address);
         }
     }
 }
