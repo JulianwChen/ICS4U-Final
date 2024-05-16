@@ -24,6 +24,7 @@ import javafx.stage.Stage;
  
 public class Table extends Application {
  
+    // mathis was here
     private TableView<Person> table = new TableView<Person>();
     private final ObservableList<Person> data =
             FXCollections.observableArrayList();
