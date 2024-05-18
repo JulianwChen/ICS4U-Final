@@ -1,10 +1,7 @@
 package contactsapp;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Scanner;
@@ -35,13 +32,14 @@ import javafx.stage.Stage;
 public class Table extends Application {
 
     // Initialize variables to be used throughout the class
-    Person changePerson = new Person("", "", "", "", "");
+    Person changePerson = new Person("", "", "", "", "", "");
     int person = 0;
     final TextField addFirstName = new TextField();
     final TextField addLastName = new TextField();
     final TextField addPhoneNumber = new TextField();
     final TextField addEmail = new TextField();
     final TextField addAddress = new TextField();
+    final TextField addBday = new TextField();
 
     // mathis was here
     private TableView<Person> table = new TableView<Person>();
@@ -59,7 +57,7 @@ public class Table extends Application {
         stage.setWidth(1000);
         stage.setHeight(600);
 
-        final Label label = new Label("Address Book");
+        final Label label = new Label("Contacts");
         label.setFont(new Font("Arial", 20));
 
         table.setEditable(false);
@@ -94,7 +92,7 @@ public class Table extends Application {
                     }
                 });
 
-        // Thrid Column = Phone Number
+        // Third Column = Phone Number
         TableColumn phoneNumCol = new TableColumn("Phone Number");
         phoneNumCol.setMinWidth(150);
         phoneNumCol.setCellValueFactory(
@@ -139,20 +137,37 @@ public class Table extends Application {
                     }
                 });
 
+        // Sixth Column = birthday
+        TableColumn bdayCol = new TableColumn("Birthday");
+        bdayCol.setMinWidth(200);
+        bdayCol.setCellValueFactory(
+                new PropertyValueFactory<Person, String>("Birthday"));
+        bdayCol.setCellFactory(TextFieldTableCell.forTableColumn());
+        bdayCol.setOnEditCommit(
+                new EventHandler<CellEditEvent<Person, String>>() {
+                    @Override
+                    public void handle(CellEditEvent<Person, String> t) {
+                        ((Person) t.getTableView().getItems().get(
+                                t.getTablePosition().getRow())).setBirthday(t.getNewValue());
+                    }
+                });
+
         table.setItems(data);
-        table.getColumns().addAll(firstNameCol, lastNameCol, phoneNumCol, emailCol, addressCol);
+        table.getColumns().addAll(firstNameCol, lastNameCol, phoneNumCol, emailCol, addressCol, bdayCol);
 
         // Text Fields to input Contact info
         addFirstName.setPromptText("First Name");
         addFirstName.setMaxWidth(firstNameCol.getPrefWidth());
-        addLastName.setMaxWidth(lastNameCol.getPrefWidth());
         addLastName.setPromptText("Last Name");
-        addPhoneNumber.setMaxWidth(100);
+        addLastName.setMaxWidth(lastNameCol.getPrefWidth());
         addPhoneNumber.setPromptText("Phone Number");
-        addEmail.setMaxWidth(emailCol.getPrefWidth());
+        addPhoneNumber.setMaxWidth(100);
         addEmail.setPromptText("Email");
-        addAddress.setMaxWidth(addressCol.getPrefWidth());
+        addEmail.setMaxWidth(emailCol.getPrefWidth());
         addAddress.setPromptText("Address");
+        addAddress.setMaxWidth(addressCol.getPrefWidth());
+        addBday.setPromptText("Birthday");
+        addBday.setMaxWidth(bdayCol.getPrefWidth());
 
         // Add button to add the new contacts
         final Button addButton = new Button("Add");
@@ -168,12 +183,14 @@ public class Table extends Application {
             @Override
             public void handle(ActionEvent e) {
                 if (addFirstName.getText() != "") {
+                    noComma();
                     data.add(new Person(
                             addFirstName.getText(),
                             addLastName.getText(),
                             addPhoneNumber.getText(),
                             addEmail.getText(),
-                            addAddress.getText()));
+                            addAddress.getText(),
+                            addBday.getText()));
                     clearTextFields();
                     writeCSV();
                 }
@@ -189,11 +206,12 @@ public class Table extends Application {
                 addButton.setDisable(true);
                 editButton.setDisable(true);
                 deleteButton.setVisible(false);
-                addFirstName.setText(changePerson.getFirstName());
-                addLastName.setText(changePerson.getLastName());
-                addPhoneNumber.setText(changePerson.getPhoneNumber());
-                addEmail.setText(changePerson.getEmail());
-                addAddress.setText(changePerson.getAddress());
+                addFirstName.setText(changePerson.getFirstName().trim());
+                addLastName.setText(changePerson.getLastName().trim());
+                addPhoneNumber.setText(changePerson.getPhoneNumber().trim());
+                addEmail.setText(changePerson.getEmail().trim());
+                addAddress.setText(changePerson.getAddress().trim());
+                addBday.setText(changePerson.getBirthday().trim());
             }
         });
         // Set up update button
@@ -201,10 +219,12 @@ public class Table extends Application {
         updateButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent arg0) {
-                addButton.setDisable(false);
-                updateButton.setVisible(false);
-                editContact(changePerson);
-                clearTextFields();
+                if (addFirstName.getText() != "") {
+                    addButton.setDisable(false);
+                    updateButton.setVisible(false);
+                    editContact(changePerson);
+                    clearTextFields();
+                }
             }
         });
 
@@ -253,7 +273,8 @@ public class Table extends Application {
         });
 
         // Add everything to hbox
-        hb.getChildren().addAll(addFirstName, addLastName, addPhoneNumber, addEmail, addAddress, addButton, editButton,
+        hb.getChildren().addAll(addFirstName, addLastName, addPhoneNumber, addEmail, addAddress, addBday, addButton,
+                editButton,
                 updateButton, deleteButton);
         hb.setSpacing(3);
 
@@ -271,14 +292,16 @@ public class Table extends Application {
         stage.show();
     }
 
-
     // Read from CSV file and add populate ccontacts app
     public void readCSV() {
-        try (Scanner scanner = new Scanner(new File("C:\\Users\\Julia\\OneDrive\\Desktop\\ICS4U Final\\ContactsData.csv"))) {
+        try (Scanner scanner = new Scanner(
+                new File("C:\\Users\\Julia\\OneDrive\\Desktop\\ICS4U Final\\ContactsData.csv"))) {
             while (scanner.hasNextLine()) {
                 String line = scanner.nextLine();
                 String[] values = line.split(",");
-                data.add(new Person(values[0], values[1], values[2], values[3], values[4]));
+                if (values.length == 6) { // to prevent ArrayIndexOutOfBoundsException
+                    data.add(new Person(values[0], values[1], values[2], values[3], values[4], values[5]));
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -287,10 +310,11 @@ public class Table extends Application {
 
     // Update CSV file with changes in contacts
     public void writeCSV() {
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter("C:\\Users\\Julia\\OneDrive\\Desktop\\ICS4U Final\\ContactsData.csv"))) {
-            // bw.write("");
+        try (BufferedWriter bw = new BufferedWriter(
+                new FileWriter("C:\\Users\\Julia\\OneDrive\\Desktop\\ICS4U Final\\ContactsData.csv"))) {
             for (Person person : data) {
-                bw.write(person.getFirstName() + "," + person.getLastName() + "," + person.getPhoneNumber() + "," + person.getEmail() + "," + person.getAddress());
+                bw.write(person.getFirstName() + " ," + person.getLastName() + " ," + person.getPhoneNumber() + " ,"
+                        + person.getEmail() + " ," + person.getAddress() + " , " + person.getBirthday());
                 bw.newLine();
             }
         } catch (IOException e) {
@@ -300,11 +324,13 @@ public class Table extends Application {
 
     // Method to edit/update contact info
     public void editContact(Person person) {
+        noComma();
         person.setFirstName(addFirstName.getText());
         person.setLastName(addLastName.getText());
         person.setPhoneNumber(addPhoneNumber.getText());
         person.setEmail(addEmail.getText());
         person.setAddress(addAddress.getText());
+        person.setBirthday(addBday.getText());
         table.refresh();
         writeCSV();
     }
@@ -316,6 +342,29 @@ public class Table extends Application {
         addPhoneNumber.clear();
         addEmail.clear();
         addAddress.clear();
+        addBday.clear();
+    }
+
+    // Make sure there are no commas in contact info
+    public void noComma() {
+        if (addFirstName.getText().contains(",")) {
+            addFirstName.setText(addFirstName.getText().replace(",", ""));
+        }
+        if (addLastName.getText().contains(",")) {
+            addLastName.setText(addLastName.getText().replace(",", ""));
+        }
+        if (addPhoneNumber.getText().contains(",")) {
+            addPhoneNumber.setText(addPhoneNumber.getText().replace(",", ""));
+        }
+        if (addEmail.getText().contains(",")) {
+            addEmail.setText(addEmail.getText().replace(",", ""));
+        }
+        if (addAddress.getText().contains(",")) {
+            addAddress.setText(addAddress.getText().replace(",", ""));
+        }
+        if (addBday.getText().contains(",")) {
+            addBday.setText(addBday.getText().replace(",", ""));
+        }
     }
 
     // Method to delete contact
@@ -332,14 +381,16 @@ public class Table extends Application {
         private final SimpleStringProperty phoneNumber;
         private final SimpleStringProperty email;
         private final SimpleStringProperty address;
+        private final SimpleStringProperty birthday;
 
         // Person constructor
-        private Person(String fName, String lName, String pNum, String email, String address) {
+        private Person(String fName, String lName, String pNum, String email, String address, String bday) {
             this.firstName = new SimpleStringProperty(fName);
             this.lastName = new SimpleStringProperty(lName);
             this.phoneNumber = new SimpleStringProperty(pNum);
             this.email = new SimpleStringProperty(email);
             this.address = new SimpleStringProperty(address);
+            this.birthday = new SimpleStringProperty(bday);
         }
 
         // First Name
@@ -385,6 +436,15 @@ public class Table extends Application {
 
         public void setAddress(String address) {
             this.address.set(address);
+        }
+
+        // Birthday
+        public String getBirthday() {
+            return birthday.get();
+        }
+
+        public void setBirthday(String birthday) {
+            this.birthday.set(birthday);
         }
     }
 }
