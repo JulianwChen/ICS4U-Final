@@ -17,7 +17,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableColumn.CellEditEvent;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
@@ -32,8 +31,7 @@ import javafx.stage.Stage;
 public class Table extends Application {
 
     // Initialize variables to be used throughout the class
-    Person changePerson = new Person("", "", "", "", "", "");
-    int person = 0;
+    Person person = new Person("", "", "", "", "", "");
     final TextField addFirstName = new TextField();
     final TextField addLastName = new TextField();
     final TextField addPhoneNumber = new TextField();
@@ -41,7 +39,6 @@ public class Table extends Application {
     final TextField addAddress = new TextField();
     final TextField addBday = new TextField();
 
-    // mathis was here
     private TableView<Person> table = new TableView<Person>();
     private final ObservableList<Person> data = FXCollections.observableArrayList();
     final HBox hb = new HBox();
@@ -65,92 +62,40 @@ public class Table extends Application {
         // First Column = First Name
         TableColumn firstNameCol = new TableColumn("First Name");
         firstNameCol.setMinWidth(100);
-        firstNameCol.setCellValueFactory(
-                new PropertyValueFactory<Person, String>("firstName"));
+        firstNameCol.setCellValueFactory(new PropertyValueFactory<Person, String>("firstName"));
         firstNameCol.setCellFactory(TextFieldTableCell.forTableColumn());
-        firstNameCol.setOnEditCommit(
-                new EventHandler<CellEditEvent<Person, String>>() {
-                    @Override
-                    public void handle(CellEditEvent<Person, String> t) {
-                        ((Person) t.getTableView().getItems().get(
-                                t.getTablePosition().getRow())).setFirstName(t.getNewValue());
-                    }
-                });
 
         // Second Column = Last Name
         TableColumn lastNameCol = new TableColumn("Last Name");
         lastNameCol.setMinWidth(100);
-        lastNameCol.setCellValueFactory(
-                new PropertyValueFactory<Person, String>("lastName"));
+        lastNameCol.setCellValueFactory(new PropertyValueFactory<Person, String>("lastName"));
         lastNameCol.setCellFactory(TextFieldTableCell.forTableColumn());
-        lastNameCol.setOnEditCommit(
-                new EventHandler<CellEditEvent<Person, String>>() {
-                    @Override
-                    public void handle(CellEditEvent<Person, String> t) {
-                        ((Person) t.getTableView().getItems().get(
-                                t.getTablePosition().getRow())).setLastName(t.getNewValue());
-                    }
-                });
 
         // Third Column = Phone Number
         TableColumn phoneNumCol = new TableColumn("Phone Number");
         phoneNumCol.setMinWidth(150);
-        phoneNumCol.setCellValueFactory(
-                new PropertyValueFactory<Person, String>("phoneNumber"));
+        phoneNumCol.setCellValueFactory(new PropertyValueFactory<Person, String>("phoneNumber"));
         phoneNumCol.setCellFactory(TextFieldTableCell.forTableColumn());
-        phoneNumCol.setOnEditCommit(
-                new EventHandler<CellEditEvent<Person, String>>() {
-                    @Override
-                    public void handle(CellEditEvent<Person, String> t) {
-                        ((Person) t.getTableView().getItems().get(
-                                t.getTablePosition().getRow())).setPhoneNumber(t.getNewValue());
-                    }
-                });
+        // TODO: add multiple phone numbers per person
 
         // Fourth Column = Email
         TableColumn emailCol = new TableColumn("Email");
         emailCol.setMinWidth(200);
-        emailCol.setCellValueFactory(
-                new PropertyValueFactory<Person, String>("email"));
+        emailCol.setCellValueFactory(new PropertyValueFactory<Person, String>("email"));
         emailCol.setCellFactory(TextFieldTableCell.forTableColumn());
-        emailCol.setOnEditCommit(
-                new EventHandler<CellEditEvent<Person, String>>() {
-                    @Override
-                    public void handle(CellEditEvent<Person, String> t) {
-                        ((Person) t.getTableView().getItems().get(
-                                t.getTablePosition().getRow())).setEmail(t.getNewValue());
-                    }
-                });
+        // TODO: add multiple emails per eprson??
 
         // Fifth Column = Address
         TableColumn addressCol = new TableColumn("Address");
         addressCol.setMinWidth(200);
-        addressCol.setCellValueFactory(
-                new PropertyValueFactory<Person, String>("address"));
+        addressCol.setCellValueFactory(new PropertyValueFactory<Person, String>("address"));
         addressCol.setCellFactory(TextFieldTableCell.forTableColumn());
-        addressCol.setOnEditCommit(
-                new EventHandler<CellEditEvent<Person, String>>() {
-                    @Override
-                    public void handle(CellEditEvent<Person, String> t) {
-                        ((Person) t.getTableView().getItems().get(
-                                t.getTablePosition().getRow())).setAddress(t.getNewValue());
-                    }
-                });
 
         // Sixth Column = birthday
         TableColumn bdayCol = new TableColumn("Birthday");
         bdayCol.setMinWidth(200);
-        bdayCol.setCellValueFactory(
-                new PropertyValueFactory<Person, String>("Birthday"));
+        bdayCol.setCellValueFactory(new PropertyValueFactory<Person, String>("Birthday"));
         bdayCol.setCellFactory(TextFieldTableCell.forTableColumn());
-        bdayCol.setOnEditCommit(
-                new EventHandler<CellEditEvent<Person, String>>() {
-                    @Override
-                    public void handle(CellEditEvent<Person, String> t) {
-                        ((Person) t.getTableView().getItems().get(
-                                t.getTablePosition().getRow())).setBirthday(t.getNewValue());
-                    }
-                });
 
         table.setItems(data);
         table.getColumns().addAll(firstNameCol, lastNameCol, phoneNumCol, emailCol, addressCol, bdayCol);
@@ -181,7 +126,7 @@ public class Table extends Application {
         // Set up add button
         addButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
-            public void handle(ActionEvent e) {
+            public void handle(ActionEvent arg0) {
                 if (addFirstName.getText() != "") {
                     noComma();
                     data.add(new Person(
@@ -206,12 +151,12 @@ public class Table extends Application {
                 addButton.setDisable(true);
                 editButton.setDisable(true);
                 deleteButton.setVisible(false);
-                addFirstName.setText(changePerson.getFirstName().trim());
-                addLastName.setText(changePerson.getLastName().trim());
-                addPhoneNumber.setText(changePerson.getPhoneNumber().trim());
-                addEmail.setText(changePerson.getEmail().trim());
-                addAddress.setText(changePerson.getAddress().trim());
-                addBday.setText(changePerson.getBirthday().trim());
+                addFirstName.setText(person.getFirstName().trim());
+                addLastName.setText(person.getLastName().trim());
+                addPhoneNumber.setText(person.getPhoneNumber().trim());
+                addEmail.setText(person.getEmail().trim());
+                addAddress.setText(person.getAddress().trim());
+                addBday.setText(person.getBirthday().trim());
             }
         });
         // Set up update button
@@ -222,7 +167,7 @@ public class Table extends Application {
                 if (addFirstName.getText() != "") {
                     addButton.setDisable(false);
                     updateButton.setVisible(false);
-                    editContact(changePerson);
+                    editContact(person);
                     clearTextFields();
                 }
             }
@@ -233,7 +178,7 @@ public class Table extends Application {
         deleteButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent arg0) {
-                deleteContact(changePerson);
+                deleteContact(person);
                 table.getSelectionModel().clearSelection();
                 deleteButton.setVisible(false);
                 editButton.setDisable(true);
@@ -243,10 +188,19 @@ public class Table extends Application {
         // Add selection listener to TableView(if the user clicks on a row)
         table.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
             // Perform actions based on the selected item
-            if (newSelection != null) {
+            if (newSelection != null && updateButton.isVisible() == false) {
+                person = newSelection;
                 editButton.setDisable(false);
                 deleteButton.setVisible(true);
-                changePerson = newSelection;
+            }
+            if ( newSelection != null && updateButton.isVisible() == true) {
+                person = newSelection;
+                addFirstName.setText(person.getFirstName().trim());
+                addLastName.setText(person.getLastName().trim());
+                addPhoneNumber.setText(person.getPhoneNumber().trim());
+                addEmail.setText(person.getEmail().trim());
+                addAddress.setText(person.getAddress().trim());
+                addBday.setText(person.getBirthday().trim());
             }
         });
 
