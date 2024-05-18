@@ -1,5 +1,13 @@
 package contactsapp;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Scanner;
 import javafx.application.Application;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -13,10 +21,12 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.CellEditEvent;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
@@ -150,21 +160,22 @@ public class Table extends Application {
         final Button editButton = new Button("Edit");
         // Button to update contact info
         final Button updateButton = new Button("Update");
+        // Button to delete contact
+        final Button deleteButton = new Button("Delete");
 
         // Set up add button
         addButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent e) {
-                if (addFirstName.getText() != "" && addLastName.getText() != "" && addPhoneNumber.getText() != ""
-                        && addEmail.getText() != "" && addAddress.getText() != "") {
+                if (addFirstName.getText() != "") {
                     data.add(new Person(
-                        addFirstName.getText(),
-                        addLastName.getText(),
-                        addPhoneNumber.getText(),
-                        addEmail.getText(),
-                        addAddress.getText()
-                    ));
+                            addFirstName.getText(),
+                            addLastName.getText(),
+                            addPhoneNumber.getText(),
+                            addEmail.getText(),
+                            addAddress.getText()));
                     clearTextFields();
+                    writeCSV();
                 }
             }
         });
@@ -177,6 +188,7 @@ public class Table extends Application {
                 updateButton.setVisible(true);
                 addButton.setDisable(true);
                 editButton.setDisable(true);
+                deleteButton.setVisible(false);
                 addFirstName.setText(changePerson.getFirstName());
                 addLastName.setText(changePerson.getLastName());
                 addPhoneNumber.setText(changePerson.getPhoneNumber());
@@ -191,8 +203,20 @@ public class Table extends Application {
             public void handle(ActionEvent arg0) {
                 addButton.setDisable(false);
                 updateButton.setVisible(false);
-                editData(changePerson);
+                editContact(changePerson);
                 clearTextFields();
+            }
+        });
+
+        // Set up delete button
+        deleteButton.setVisible(false);
+        deleteButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent arg0) {
+                deleteContact(changePerson);
+                table.getSelectionModel().clearSelection();
+                deleteButton.setVisible(false);
+                editButton.setDisable(true);
             }
         });
 
@@ -201,12 +225,36 @@ public class Table extends Application {
             // Perform actions based on the selected item
             if (newSelection != null) {
                 editButton.setDisable(false);
+                deleteButton.setVisible(true);
                 changePerson = newSelection;
             }
         });
 
+        // Resets buttons if the user clicks away from the table
+        scene.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
+            if (!table.isHover() && !addButton.isHover() && !editButton.isHover() && !deleteButton.isHover()) {
+                editButton.setDisable(true);
+                deleteButton.setVisible(false);
+                table.getSelectionModel().clearSelection();
+            }
+        });
+
+        // Resets buttons if user clicks on an empty row
+        table.setRowFactory(people -> {
+            TableRow<Person> row = new TableRow<>();
+            row.setOnMouseClicked(event -> {
+                if (row.isEmpty()) {
+                    editButton.setDisable(true);
+                    deleteButton.setVisible(false);
+                    table.getSelectionModel().clearSelection();
+                }
+            });
+            return row;
+        });
+
+        // Add everything to hbox
         hb.getChildren().addAll(addFirstName, addLastName, addPhoneNumber, addEmail, addAddress, addButton, editButton,
-                updateButton);
+                updateButton, deleteButton);
         hb.setSpacing(3);
 
         final VBox vbox = new VBox();
@@ -216,19 +264,52 @@ public class Table extends Application {
 
         ((Group) scene.getRoot()).getChildren().addAll(vbox);
 
+        // Upload all preexisting contacts
+        readCSV();
+
         stage.setScene(scene);
         stage.show();
     }
 
-    public void editData(Person person) {
+
+    // Read from CSV file and add populate ccontacts app
+    public void readCSV() {
+        try (Scanner scanner = new Scanner(new File("C:\\Users\\Julia\\OneDrive\\Desktop\\ICS4U Final\\ContactsData.csv"))) {
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine();
+                String[] values = line.split(",");
+                data.add(new Person(values[0], values[1], values[2], values[3], values[4]));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Update CSV file with changes in contacts
+    public void writeCSV() {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter("C:\\Users\\Julia\\OneDrive\\Desktop\\ICS4U Final\\ContactsData.csv"))) {
+            // bw.write("");
+            for (Person person : data) {
+                bw.write(person.getFirstName() + "," + person.getLastName() + "," + person.getPhoneNumber() + "," + person.getEmail() + "," + person.getAddress());
+                bw.newLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Method to edit/update contact info
+    public void editContact(Person person) {
         person.setFirstName(addFirstName.getText());
         person.setLastName(addLastName.getText());
         person.setPhoneNumber(addPhoneNumber.getText());
         person.setEmail(addEmail.getText());
         person.setAddress(addAddress.getText());
         table.refresh();
+        writeCSV();
     }
 
+    // Method to clear all text fields
     public void clearTextFields() {
         addFirstName.clear();
         addLastName.clear();
@@ -237,6 +318,13 @@ public class Table extends Application {
         addAddress.clear();
     }
 
+    // Method to delete contact
+    public void deleteContact(Person person) {
+        data.remove(person);
+        writeCSV();
+    }
+
+    // Class to represent contacts
     public static class Person {
 
         private final SimpleStringProperty firstName;
@@ -245,6 +333,7 @@ public class Table extends Application {
         private final SimpleStringProperty email;
         private final SimpleStringProperty address;
 
+        // Person constructor
         private Person(String fName, String lName, String pNum, String email, String address) {
             this.firstName = new SimpleStringProperty(fName);
             this.lastName = new SimpleStringProperty(lName);
