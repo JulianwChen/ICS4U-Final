@@ -15,6 +15,7 @@ import javafx.geometry.Insets;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
@@ -26,18 +27,21 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 public class Table extends Application {
 
     // Initialize variables to be used throughout the class
-    Person person = new Person("", "", "", "", "", "");
+    Person person = new Person("", "", "", "", "", "", "");
     final TextField addFirstName = new TextField();
     final TextField addLastName = new TextField();
     final TextField addPhoneNumber = new TextField();
+    final TextField addPhoneNumber2 = new TextField();
     final TextField addEmail = new TextField();
     final TextField addAddress = new TextField();
     final TextField addBday = new TextField();
+    final CheckBox secondNumber = new CheckBox("Second Phone Number?");
 
     private TableView<Person> table = new TableView<Person>();
     private final ObservableList<Person> data = FXCollections.observableArrayList();
@@ -76,7 +80,7 @@ public class Table extends Application {
         phoneNumCol.setMinWidth(150);
         phoneNumCol.setCellValueFactory(new PropertyValueFactory<Person, String>("phoneNumber"));
         phoneNumCol.setCellFactory(TextFieldTableCell.forTableColumn());
-        // TODO: add multiple phone numbers per person
+        // TODO: connect second phone number row to person
 
         // Fourth Column = Email
         TableColumn emailCol = new TableColumn("Email");
@@ -107,12 +111,32 @@ public class Table extends Application {
         addLastName.setMaxWidth(lastNameCol.getPrefWidth());
         addPhoneNumber.setPromptText("Phone Number");
         addPhoneNumber.setMaxWidth(100);
+        addPhoneNumber2.setPromptText("Phone Number");
+        addPhoneNumber2.setMaxWidth(100);
+        addPhoneNumber2.setVisible(false);
+        addPhoneNumber2.setLayoutX(addPhoneNumber.getLayoutX());
+        addPhoneNumber2.setLayoutY(addPhoneNumber.getLayoutY() + 100);
         addEmail.setPromptText("Email");
         addEmail.setMaxWidth(emailCol.getPrefWidth());
         addAddress.setPromptText("Address");
         addAddress.setMaxWidth(addressCol.getPrefWidth());
         addBday.setPromptText("Birthday");
         addBday.setMaxWidth(bdayCol.getPrefWidth());
+
+        // Set the second phone number checkbox to false    
+        secondNumber.setSelected(false);
+        // Show the second textfield accordingly
+        secondNumber.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent arg0) {
+                if (secondNumber.isSelected()) {
+                    addPhoneNumber2.setVisible(true);
+                } else {
+                    addPhoneNumber2.setVisible(false);
+                    addPhoneNumber2.clear();
+                }
+            }
+        });
 
         // Add button to add the new contacts
         final Button addButton = new Button("Add");
@@ -127,17 +151,25 @@ public class Table extends Application {
         addButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent arg0) {
-                if (addFirstName.getText() != "") {
+                if (addFirstName.getText().trim() != "" ) {
                     noComma();
-                    data.add(new Person(
-                            addFirstName.getText(),
-                            addLastName.getText(),
-                            addPhoneNumber.getText(),
-                            addEmail.getText(),
-                            addAddress.getText(),
-                            addBday.getText()));
+                    Person guy = new Person(
+                        addFirstName.getText(),
+                        addLastName.getText(),
+                        addPhoneNumber.getText(),
+                        addPhoneNumber2.getText(),
+                        addEmail.getText(),
+                        addAddress.getText(),
+                        addBday.getText());
+                    data.add(guy);
+                    if (addPhoneNumber2.getText().trim() != "") {
+                        guy = new Person("", "", addPhoneNumber2.getText(), "", "", "", "");
+                        data.add(guy);
+                    }
                     clearTextFields();
                     writeCSV();
+                    secondNumber.setSelected(false);
+                    addPhoneNumber2.setVisible(false);
                 }
             }
         });
@@ -154,6 +186,7 @@ public class Table extends Application {
                 addFirstName.setText(person.getFirstName().trim());
                 addLastName.setText(person.getLastName().trim());
                 addPhoneNumber.setText(person.getPhoneNumber().trim());
+                addPhoneNumber2.setText(person.getPhoneNumber2().trim());
                 addEmail.setText(person.getEmail().trim());
                 addAddress.setText(person.getAddress().trim());
                 addBday.setText(person.getBirthday().trim());
@@ -188,16 +221,17 @@ public class Table extends Application {
         // Add selection listener to TableView(if the user clicks on a row)
         table.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
             // Perform actions based on the selected item
-            if (newSelection != null && updateButton.isVisible() == false) {
+            if (newSelection != null && !updateButton.isVisible()) {
                 person = newSelection;
                 editButton.setDisable(false);
                 deleteButton.setVisible(true);
             }
-            if ( newSelection != null && updateButton.isVisible() == true) {
+            if ( newSelection != null && updateButton.isVisible()) {
                 person = newSelection;
                 addFirstName.setText(person.getFirstName().trim());
                 addLastName.setText(person.getLastName().trim());
                 addPhoneNumber.setText(person.getPhoneNumber().trim());
+                addPhoneNumber2.setText(person.getPhoneNumber2().trim());
                 addEmail.setText(person.getEmail().trim());
                 addAddress.setText(person.getAddress().trim());
                 addBday.setText(person.getBirthday().trim());
@@ -227,9 +261,8 @@ public class Table extends Application {
         });
 
         // Add everything to hbox
-        hb.getChildren().addAll(addFirstName, addLastName, addPhoneNumber, addEmail, addAddress, addBday, addButton,
-                editButton,
-                updateButton, deleteButton);
+        hb.getChildren().addAll(addFirstName, addLastName, addPhoneNumber, addPhoneNumber2, addEmail, addAddress, addBday, addButton,
+                editButton, updateButton, deleteButton, secondNumber);
         hb.setSpacing(3);
 
         final VBox vbox = new VBox();
@@ -253,8 +286,8 @@ public class Table extends Application {
             while (scanner.hasNextLine()) {
                 String line = scanner.nextLine();
                 String[] values = line.split(",");
-                if (values.length == 6) { // to prevent ArrayIndexOutOfBoundsException
-                    data.add(new Person(values[0], values[1], values[2], values[3], values[4], values[5]));
+                if (values.length == 7) { // to prevent ArrayIndexOutOfBoundsException
+                    data.add(new Person(values[0], values[1], values[2], values[3], values[4], values[5], values[6]));
                 }
             }
         } catch (IOException e) {
@@ -268,7 +301,8 @@ public class Table extends Application {
                 new FileWriter("C:\\Users\\Julia\\OneDrive\\Desktop\\ICS4U Final\\ContactsData.csv"))) {
             for (Person person : data) {
                 bw.write(person.getFirstName() + " ," + person.getLastName() + " ," + person.getPhoneNumber() + " ,"
-                        + person.getEmail() + " ," + person.getAddress() + " , " + person.getBirthday());
+                        + person.getPhoneNumber2() + " ," + person.getEmail() + " ," + person.getAddress() + " , "
+                        + person.getBirthday());
                 bw.newLine();
             }
         } catch (IOException e) {
@@ -282,6 +316,7 @@ public class Table extends Application {
         person.setFirstName(addFirstName.getText());
         person.setLastName(addLastName.getText());
         person.setPhoneNumber(addPhoneNumber.getText());
+        person.setPhoneNumber(addPhoneNumber2.getText());
         person.setEmail(addEmail.getText());
         person.setAddress(addAddress.getText());
         person.setBirthday(addBday.getText());
@@ -294,6 +329,7 @@ public class Table extends Application {
         addFirstName.clear();
         addLastName.clear();
         addPhoneNumber.clear();
+        addPhoneNumber2.clear();
         addEmail.clear();
         addAddress.clear();
         addBday.clear();
@@ -309,6 +345,9 @@ public class Table extends Application {
         }
         if (addPhoneNumber.getText().contains(",")) {
             addPhoneNumber.setText(addPhoneNumber.getText().replace(",", ""));
+        }
+        if (addPhoneNumber2.getText().contains(",")) {
+            addPhoneNumber2.setText(addPhoneNumber2.getText().replace(",", ""));
         }
         if (addEmail.getText().contains(",")) {
             addEmail.setText(addEmail.getText().replace(",", ""));
@@ -333,15 +372,17 @@ public class Table extends Application {
         private final SimpleStringProperty firstName;
         private final SimpleStringProperty lastName;
         private final SimpleStringProperty phoneNumber;
+        private final SimpleStringProperty phoneNumber2;
         private final SimpleStringProperty email;
         private final SimpleStringProperty address;
         private final SimpleStringProperty birthday;
 
         // Person constructor
-        private Person(String fName, String lName, String pNum, String email, String address, String bday) {
+        private Person(String fName, String lName, String pNum, String pNum2, String email, String address, String bday) {
             this.firstName = new SimpleStringProperty(fName);
             this.lastName = new SimpleStringProperty(lName);
             this.phoneNumber = new SimpleStringProperty(pNum);
+            this.phoneNumber2 = new SimpleStringProperty(pNum2);
             this.email = new SimpleStringProperty(email);
             this.address = new SimpleStringProperty(address);
             this.birthday = new SimpleStringProperty(bday);
@@ -372,6 +413,14 @@ public class Table extends Application {
 
         public void setPhoneNumber(String phoneNum) {
             phoneNumber.set(phoneNum);
+        }
+        
+        public String getPhoneNumber2() {
+            return phoneNumber2.get();
+        }
+
+        public void setPhoneNumber2(String phoneNum2) {
+            phoneNumber2.set(phoneNum2);
         }
 
         // Email
