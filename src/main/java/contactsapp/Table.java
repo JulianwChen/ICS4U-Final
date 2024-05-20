@@ -25,9 +25,9 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
-import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 public class Table extends Application {
@@ -46,6 +46,8 @@ public class Table extends Application {
     private TableView<Person> table = new TableView<Person>();
     private final ObservableList<Person> data = FXCollections.observableArrayList();
     final HBox hb = new HBox();
+    final HBox hb2 = new HBox();
+    int index;
 
     public static void main(String[] args) {
         launch(args);
@@ -61,6 +63,7 @@ public class Table extends Application {
         final Label label = new Label("Contacts");
         label.setFont(new Font("Arial", 20));
 
+        // user cannot directly edit contact info from the table
         table.setEditable(false);
 
         // First Column = First Name
@@ -68,18 +71,21 @@ public class Table extends Application {
         firstNameCol.setMinWidth(100);
         firstNameCol.setCellValueFactory(new PropertyValueFactory<Person, String>("firstName"));
         firstNameCol.setCellFactory(TextFieldTableCell.forTableColumn());
+        firstNameCol.setSortable(false);
 
         // Second Column = Last Name
         TableColumn lastNameCol = new TableColumn("Last Name");
         lastNameCol.setMinWidth(100);
         lastNameCol.setCellValueFactory(new PropertyValueFactory<Person, String>("lastName"));
         lastNameCol.setCellFactory(TextFieldTableCell.forTableColumn());
+        lastNameCol.setSortable(false);
 
         // Third Column = Phone Number
         TableColumn phoneNumCol = new TableColumn("Phone Number");
         phoneNumCol.setMinWidth(150);
         phoneNumCol.setCellValueFactory(new PropertyValueFactory<Person, String>("phoneNumber"));
         phoneNumCol.setCellFactory(TextFieldTableCell.forTableColumn());
+        phoneNumCol.setSortable(false);
         // TODO: connect second phone number row to person
 
         // Fourth Column = Email
@@ -87,6 +93,7 @@ public class Table extends Application {
         emailCol.setMinWidth(200);
         emailCol.setCellValueFactory(new PropertyValueFactory<Person, String>("email"));
         emailCol.setCellFactory(TextFieldTableCell.forTableColumn());
+        emailCol.setSortable(false);
         // TODO: add multiple emails per eprson??
 
         // Fifth Column = Address
@@ -94,12 +101,14 @@ public class Table extends Application {
         addressCol.setMinWidth(200);
         addressCol.setCellValueFactory(new PropertyValueFactory<Person, String>("address"));
         addressCol.setCellFactory(TextFieldTableCell.forTableColumn());
+        addressCol.setSortable(false);
 
         // Sixth Column = birthday
         TableColumn bdayCol = new TableColumn("Birthday");
         bdayCol.setMinWidth(200);
         bdayCol.setCellValueFactory(new PropertyValueFactory<Person, String>("Birthday"));
         bdayCol.setCellFactory(TextFieldTableCell.forTableColumn());
+        bdayCol.setSortable(false);
 
         table.setItems(data);
         table.getColumns().addAll(firstNameCol, lastNameCol, phoneNumCol, emailCol, addressCol, bdayCol);
@@ -110,12 +119,10 @@ public class Table extends Application {
         addLastName.setPromptText("Last Name");
         addLastName.setMaxWidth(lastNameCol.getPrefWidth());
         addPhoneNumber.setPromptText("Phone Number");
-        addPhoneNumber.setMaxWidth(100);
-        addPhoneNumber2.setPromptText("Phone Number");
-        addPhoneNumber2.setMaxWidth(100);
+        addPhoneNumber.setMaxWidth(110);
+        addPhoneNumber2.setPromptText("Phone Number 2");
+        addPhoneNumber2.setMaxWidth(110);
         addPhoneNumber2.setVisible(false);
-        addPhoneNumber2.setLayoutX(addPhoneNumber.getLayoutX());
-        addPhoneNumber2.setLayoutY(addPhoneNumber.getLayoutY() + 100);
         addEmail.setPromptText("Email");
         addEmail.setMaxWidth(emailCol.getPrefWidth());
         addAddress.setPromptText("Address");
@@ -123,7 +130,7 @@ public class Table extends Application {
         addBday.setPromptText("Birthday");
         addBday.setMaxWidth(bdayCol.getPrefWidth());
 
-        // Set the second phone number checkbox to false    
+        // Set the second phone number checkbox to false
         secondNumber.setSelected(false);
         // Show the second textfield accordingly
         secondNumber.setOnAction(new EventHandler<ActionEvent>() {
@@ -151,20 +158,18 @@ public class Table extends Application {
         addButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent arg0) {
-                if (addFirstName.getText().trim() != "" ) {
+                if (addFirstName.getText().trim() != "") {
                     noComma();
-                    Person guy = new Person(
-                        addFirstName.getText(),
-                        addLastName.getText(),
-                        addPhoneNumber.getText(),
-                        addPhoneNumber2.getText(),
-                        addEmail.getText(),
-                        addAddress.getText(),
-                        addBday.getText());
-                    data.add(guy);
+                    data.add(new Person(
+                            addFirstName.getText(),
+                            addLastName.getText(),
+                            addPhoneNumber.getText(),
+                            addPhoneNumber2.getText(),
+                            addEmail.getText(),
+                            addAddress.getText(),
+                            addBday.getText()));
                     if (addPhoneNumber2.getText().trim() != "") {
-                        guy = new Person("", "", addPhoneNumber2.getText(), "", "", "", "");
-                        data.add(guy);
+                        data.add(new Person("", "", addPhoneNumber2.getText(), "", "", "", ""));
                     }
                     clearTextFields();
                     writeCSV();
@@ -183,6 +188,8 @@ public class Table extends Application {
                 addButton.setDisable(true);
                 editButton.setDisable(true);
                 deleteButton.setVisible(false);
+                secondNumber.setVisible(false);
+                addPhoneNumber2.setVisible(true);
                 addFirstName.setText(person.getFirstName().trim());
                 addLastName.setText(person.getLastName().trim());
                 addPhoneNumber.setText(person.getPhoneNumber().trim());
@@ -200,6 +207,8 @@ public class Table extends Application {
                 if (addFirstName.getText() != "") {
                     addButton.setDisable(false);
                     updateButton.setVisible(false);
+                    secondNumber.setVisible(true);
+                    addPhoneNumber2.setVisible(false);
                     editContact(person);
                     clearTextFields();
                 }
@@ -221,13 +230,23 @@ public class Table extends Application {
         // Add selection listener to TableView(if the user clicks on a row)
         table.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
             // Perform actions based on the selected item
+            // Gets the index of the clicked row
+            if (table.getSelectionModel().getSelectedIndex() >= 0) {
+                index = table.getSelectionModel().getSelectedIndex();
+            }
             if (newSelection != null && !updateButton.isVisible()) {
                 person = newSelection;
+                if (index > 0 && table.getItems().get(index - 1).getPhoneNumber2().isEmpty()) {
+                    person = table.getItems().get(index - 1);
+                }
+                // TODO: delete both person and second number
                 editButton.setDisable(false);
                 deleteButton.setVisible(true);
-            }
-            if ( newSelection != null && updateButton.isVisible()) {
+            } else if (newSelection != null && updateButton.isVisible()) {
                 person = newSelection;
+                if (index > 0 && table.getItems().get(index - 1).getPhoneNumber2().isEmpty()) {
+                    person = table.getItems().get(index - 1);
+                }
                 addFirstName.setText(person.getFirstName().trim());
                 addLastName.setText(person.getLastName().trim());
                 addPhoneNumber.setText(person.getPhoneNumber().trim());
@@ -236,6 +255,7 @@ public class Table extends Application {
                 addAddress.setText(person.getAddress().trim());
                 addBday.setText(person.getBirthday().trim());
             }
+            System.out.println(index);
         });
 
         // Resets buttons if the user clicks away from the table
@@ -248,7 +268,7 @@ public class Table extends Application {
         });
 
         // Resets buttons if user clicks on an empty row
-        table.setRowFactory(people -> {
+        table.setRowFactory(person -> {
             TableRow<Person> row = new TableRow<>();
             row.setOnMouseClicked(event -> {
                 if (row.isEmpty()) {
@@ -261,14 +281,19 @@ public class Table extends Application {
         });
 
         // Add everything to hbox
-        hb.getChildren().addAll(addFirstName, addLastName, addPhoneNumber, addPhoneNumber2, addEmail, addAddress, addBday, addButton,
+        hb.getChildren().addAll(addFirstName, addLastName, addPhoneNumber, addEmail, addAddress, addBday, addButton,
                 editButton, updateButton, deleteButton, secondNumber);
         hb.setSpacing(3);
+        // Empty space to line up phone number text fields
+        Region space = new Region();
+        space.setMinWidth(167);
+        // Add space and second phone number text field to hbox2
+        hb2.getChildren().addAll(space, addPhoneNumber2);
 
         final VBox vbox = new VBox();
         vbox.setSpacing(5);
         vbox.setPadding(new Insets(10, 0, 0, 10));
-        vbox.getChildren().addAll(label, table, hb);
+        vbox.getChildren().addAll(label, table, hb, hb2);
 
         ((Group) scene.getRoot()).getChildren().addAll(vbox);
 
@@ -316,12 +341,16 @@ public class Table extends Application {
         person.setFirstName(addFirstName.getText());
         person.setLastName(addLastName.getText());
         person.setPhoneNumber(addPhoneNumber.getText());
-        person.setPhoneNumber(addPhoneNumber2.getText());
+        person.setPhoneNumber2(addPhoneNumber2.getText());
         person.setEmail(addEmail.getText());
         person.setAddress(addAddress.getText());
         person.setBirthday(addBday.getText());
+        if (!table.getItems().get(index).getPhoneNumber2().isEmpty()) {
+            data.add(index + 1, new Person("", "", addPhoneNumber2.getText(), "", "", "", ""));
+        }
         table.refresh();
         writeCSV();
+        // TODO: if there is already a second phone number, simply update, dont create new
     }
 
     // Method to clear all text fields
@@ -414,7 +443,7 @@ public class Table extends Application {
         public void setPhoneNumber(String phoneNum) {
             phoneNumber.set(phoneNum);
         }
-        
+
         public String getPhoneNumber2() {
             return phoneNumber2.get();
         }
