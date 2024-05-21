@@ -86,7 +86,6 @@ public class Table extends Application {
         phoneNumCol.setCellValueFactory(new PropertyValueFactory<Person, String>("phoneNumber"));
         phoneNumCol.setCellFactory(TextFieldTableCell.forTableColumn());
         phoneNumCol.setSortable(false);
-        // TODO: connect second phone number row to person
 
         // Fourth Column = Email
         TableColumn emailCol = new TableColumn("Email");
@@ -158,8 +157,11 @@ public class Table extends Application {
         addButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent arg0) {
-                if (addFirstName.getText().trim() != "") {
+                // Contact must have first name
+                if (!addFirstName.getText().isBlank()) {
+                    // Remove all commas from contact info
                     noComma();
+                    // Create new Person
                     data.add(new Person(
                             addFirstName.getText(),
                             addLastName.getText(),
@@ -168,7 +170,8 @@ public class Table extends Application {
                             addEmail.getText(),
                             addAddress.getText(),
                             addBday.getText()));
-                    if (addPhoneNumber2.getText().trim() != "") {
+                    // If there is a second phone number, add it to the next row
+                    if (!addPhoneNumber2.getText().isBlank()) {
                         data.add(new Person("", "", addPhoneNumber2.getText(), "", "", "", ""));
                     }
                     clearTextFields();
@@ -199,12 +202,14 @@ public class Table extends Application {
                 addBday.setText(person.getBirthday().trim());
             }
         });
+
         // Set up update button
         updateButton.setVisible(false);
         updateButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent arg0) {
-                if (addFirstName.getText() != "") {
+                // Update contact info as long as contact has a first name
+                if (!addFirstName.getText().isBlank()) {
                     addButton.setDisable(false);
                     updateButton.setVisible(false);
                     secondNumber.setVisible(true);
@@ -234,18 +239,25 @@ public class Table extends Application {
             if (table.getSelectionModel().getSelectedIndex() >= 0) {
                 index = table.getSelectionModel().getSelectedIndex();
             }
+            // If not editing:
             if (newSelection != null && !updateButton.isVisible()) {
                 person = newSelection;
-                if (index > 0 && table.getItems().get(index - 1).getPhoneNumber2().isEmpty()) {
+                // The index of the(row of the) second phone number is the same as the contact
+                // The second phone number row is part of the same contact
+                if (index > 0 && !table.getItems().get(index - 1).getPhoneNumber2().isBlank()) {
                     person = table.getItems().get(index - 1);
+                    index--;
                 }
-                // TODO: delete both person and second number
                 editButton.setDisable(false);
                 deleteButton.setVisible(true);
+                // if editing contact info
             } else if (newSelection != null && updateButton.isVisible()) {
                 person = newSelection;
-                if (index > 0 && table.getItems().get(index - 1).getPhoneNumber2().isEmpty()) {
+                // still show full Contact info if click on second phone number
+                // The index of the second phone number is the same as the contact
+                if (index > 0 && !table.getItems().get(index - 1).getPhoneNumber2().isBlank()) {
                     person = table.getItems().get(index - 1);
+                    index--;
                 }
                 addFirstName.setText(person.getFirstName().trim());
                 addLastName.setText(person.getLastName().trim());
@@ -313,6 +325,10 @@ public class Table extends Application {
                 String[] values = line.split(",");
                 if (values.length == 7) { // to prevent ArrayIndexOutOfBoundsException
                     data.add(new Person(values[0], values[1], values[2], values[3], values[4], values[5], values[6]));
+                    // Add second phone number if there is one
+                    if (!values[3].isBlank()) {
+                        data.add(new Person("", "", values[3], "", "", "", ""));
+                    }
                 }
             }
         } catch (IOException e) {
@@ -325,10 +341,13 @@ public class Table extends Application {
         try (BufferedWriter bw = new BufferedWriter(
                 new FileWriter("C:\\Users\\Julia\\OneDrive\\Desktop\\ICS4U Final\\ContactsData.csv"))) {
             for (Person person : data) {
-                bw.write(person.getFirstName() + " ," + person.getLastName() + " ," + person.getPhoneNumber() + " ,"
-                        + person.getPhoneNumber2() + " ," + person.getEmail() + " ," + person.getAddress() + " , "
-                        + person.getBirthday());
-                bw.newLine();
+                // write all contact info, skip all second phone number rows
+                if (!person.getFirstName().isBlank()) {
+                    bw.write(person.getFirstName() + " ," + person.getLastName() + " ," + person.getPhoneNumber() + " ,"
+                            + person.getPhoneNumber2() + " ," + person.getEmail() + " ," + person.getAddress() + " , "
+                            + person.getBirthday());
+                    bw.newLine();
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -345,12 +364,14 @@ public class Table extends Application {
         person.setEmail(addEmail.getText());
         person.setAddress(addAddress.getText());
         person.setBirthday(addBday.getText());
-        if (!table.getItems().get(index).getPhoneNumber2().isEmpty()) {
+        if (!table.getItems().get(index).getPhoneNumber2().isBlank()) {
+            if (index < data.size() - 1 && table.getItems().get(index + 1).getFirstName().isBlank()) {
+                data.remove(index + 1);
+            }
             data.add(index + 1, new Person("", "", addPhoneNumber2.getText(), "", "", "", ""));
         }
         table.refresh();
         writeCSV();
-        // TODO: if there is already a second phone number, simply update, dont create new
     }
 
     // Method to clear all text fields
@@ -391,6 +412,9 @@ public class Table extends Application {
 
     // Method to delete contact
     public void deleteContact(Person person) {
+        if (!table.getItems().get(index).getPhoneNumber2().isBlank()) {
+            data.remove(index + 1);
+        }
         data.remove(person);
         writeCSV();
     }
