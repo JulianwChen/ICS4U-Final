@@ -42,12 +42,12 @@ public class Table extends Application {
     final TextField addAddress = new TextField();
     final TextField addBday = new TextField();
     final CheckBox secondNumber = new CheckBox("Second Phone Number?");
+    int index;
 
     private TableView<Person> table = new TableView<Person>();
     private final ObservableList<Person> data = FXCollections.observableArrayList();
     final HBox hb = new HBox();
     final HBox hb2 = new HBox();
-    int index;
 
     public static void main(String[] args) {
         launch(args);
@@ -59,6 +59,7 @@ public class Table extends Application {
         stage.setTitle("Contacts App");
         stage.setWidth(1000);
         stage.setHeight(600);
+        stage.setResizable(false);
 
         final Label label = new Label("Contacts");
         label.setFont(new Font("Arial", 20));
@@ -129,15 +130,17 @@ public class Table extends Application {
         addBday.setPromptText("Birthday");
         addBday.setMaxWidth(bdayCol.getPrefWidth());
 
-        // Set the second phone number checkbox to false
+        // Second phone number checkbox, set to false
         secondNumber.setSelected(false);
-        // Show the second textfield accordingly
+        // Show the second phone number textfield accordingly
         secondNumber.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent arg0) {
+                // If checked, show the texfield for the second phone number
                 if (secondNumber.isSelected()) {
                     addPhoneNumber2.setVisible(true);
                 } else {
+                // If not checked, hide the textfield for the second phone number
                     addPhoneNumber2.setVisible(false);
                     addPhoneNumber2.clear();
                 }
@@ -174,8 +177,11 @@ public class Table extends Application {
                     if (!addPhoneNumber2.getText().isBlank()) {
                         data.add(new Person("", "", addPhoneNumber2.getText(), "", "", "", ""));
                     }
+                    // Clear all textfields
                     clearTextFields();
+                    // Update the csv file
                     writeCSV();
+                    // Reset the second phone number checkbox
                     secondNumber.setSelected(false);
                     addPhoneNumber2.setVisible(false);
                 }
@@ -187,6 +193,9 @@ public class Table extends Application {
         editButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent arg0) {
+                // Enter edit mode
+                // Hide all other functions other than update
+                // Update textfields with contact info so user can edit
                 updateButton.setVisible(true);
                 addButton.setDisable(true);
                 editButton.setDisable(true);
@@ -209,10 +218,12 @@ public class Table extends Application {
             @Override
             public void handle(ActionEvent arg0) {
                 // Update contact info as long as contact has a first name
+                // Reset all buttons
                 if (!addFirstName.getText().isBlank()) {
                     addButton.setDisable(false);
                     updateButton.setVisible(false);
                     secondNumber.setVisible(true);
+                    secondNumber.setSelected(false);
                     addPhoneNumber2.setVisible(false);
                     editContact(person);
                     clearTextFields();
@@ -225,6 +236,8 @@ public class Table extends Application {
         deleteButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent arg0) {
+                // Delete contact
+                // Reset buttons
                 deleteContact(person);
                 table.getSelectionModel().clearSelection();
                 deleteButton.setVisible(false);
@@ -232,9 +245,8 @@ public class Table extends Application {
             }
         });
 
-        // Add selection listener to TableView(if the user clicks on a row)
+        // Add selection listener to TableViewto check if the user clicks on a row
         table.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
-            // Perform actions based on the selected item
             // Gets the index of the clicked row
             if (table.getSelectionModel().getSelectedIndex() >= 0) {
                 index = table.getSelectionModel().getSelectedIndex();
@@ -243,22 +255,21 @@ public class Table extends Application {
             if (newSelection != null && !updateButton.isVisible()) {
                 person = newSelection;
                 // The index of the(row of the) second phone number is the same as the contact
-                // The second phone number row is part of the same contact
+                // ~If the user edits/deletes the second phone number row, edit/delete entire contact instead of just that row
                 if (index > 0 && !table.getItems().get(index - 1).getPhoneNumber2().isBlank()) {
-                    person = table.getItems().get(index - 1);
-                    index--;
+                    person = table.getItems().get(--index);
                 }
                 editButton.setDisable(false);
                 deleteButton.setVisible(true);
-                // if editing contact info
+                // If in editing mode:
             } else if (newSelection != null && updateButton.isVisible()) {
                 person = newSelection;
-                // still show full Contact info if click on second phone number
                 // The index of the second phone number is the same as the contact
+                // Show full conatct info when user clicks on second phone number(instead of only showing that row's info)
                 if (index > 0 && !table.getItems().get(index - 1).getPhoneNumber2().isBlank()) {
-                    person = table.getItems().get(index - 1);
-                    index--;
+                    person = table.getItems().get(--index);
                 }
+                // Update textfield with selected contact's info
                 addFirstName.setText(person.getFirstName().trim());
                 addLastName.setText(person.getLastName().trim());
                 addPhoneNumber.setText(person.getPhoneNumber().trim());
@@ -267,10 +278,9 @@ public class Table extends Application {
                 addAddress.setText(person.getAddress().trim());
                 addBday.setText(person.getBirthday().trim());
             }
-            System.out.println(index);
         });
 
-        // Resets buttons if the user clicks away from the table
+        // Resets buttons + unselect row if the user clicks away from the table
         scene.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
             if (!table.isHover() && !addButton.isHover() && !editButton.isHover() && !deleteButton.isHover()) {
                 editButton.setDisable(true);
@@ -279,7 +289,7 @@ public class Table extends Application {
             }
         });
 
-        // Resets buttons if user clicks on an empty row
+        // Resets buttons + deselect selected row if user clicks on an empty row
         table.setRowFactory(person -> {
             TableRow<Person> row = new TableRow<>();
             row.setOnMouseClicked(event -> {
@@ -301,22 +311,22 @@ public class Table extends Application {
         space.setMinWidth(167);
         // Add space and second phone number text field to hbox2
         hb2.getChildren().addAll(space, addPhoneNumber2);
-
+        // Set up vbox
         final VBox vbox = new VBox();
         vbox.setSpacing(5);
-        vbox.setPadding(new Insets(10, 0, 0, 10));
+        vbox.setPadding(new Insets(15, 0, 0, 15));
         vbox.getChildren().addAll(label, table, hb, hb2);
 
         ((Group) scene.getRoot()).getChildren().addAll(vbox);
 
-        // Upload all preexisting contacts
+        // Upload all preexisting contacts upon startup
         readCSV();
 
         stage.setScene(scene);
         stage.show();
     }
 
-    // Read from CSV file and add populate ccontacts app
+    // Read from CSV file and populate contacts app
     public void readCSV() {
         try (Scanner scanner = new Scanner(
                 new File("C:\\Users\\Julia\\OneDrive\\Desktop\\ICS4U Final\\ContactsData.csv"))) {
@@ -324,8 +334,9 @@ public class Table extends Application {
                 String line = scanner.nextLine();
                 String[] values = line.split(",");
                 if (values.length == 7) { // to prevent ArrayIndexOutOfBoundsException
+                    // Add all contacts
                     data.add(new Person(values[0], values[1], values[2], values[3], values[4], values[5], values[6]));
-                    // Add second phone number if there is one
+                    // Add second phone number to separate row if there is one
                     if (!values[3].isBlank()) {
                         data.add(new Person("", "", values[3], "", "", "", ""));
                     }
@@ -341,7 +352,7 @@ public class Table extends Application {
         try (BufferedWriter bw = new BufferedWriter(
                 new FileWriter("C:\\Users\\Julia\\OneDrive\\Desktop\\ICS4U Final\\ContactsData.csv"))) {
             for (Person person : data) {
-                // write all contact info, skip all second phone number rows
+                // write all contact info, skip all second phone number rows to avoid double counting
                 if (!person.getFirstName().isBlank()) {
                     bw.write(person.getFirstName() + " ," + person.getLastName() + " ," + person.getPhoneNumber() + " ,"
                             + person.getPhoneNumber2() + " ," + person.getEmail() + " ," + person.getAddress() + " , "
@@ -356,7 +367,9 @@ public class Table extends Application {
 
     // Method to edit/update contact info
     public void editContact(Person person) {
+        // Remove all commas
         noComma();
+        // Update info
         person.setFirstName(addFirstName.getText());
         person.setLastName(addLastName.getText());
         person.setPhoneNumber(addPhoneNumber.getText());
@@ -364,13 +377,18 @@ public class Table extends Application {
         person.setEmail(addEmail.getText());
         person.setAddress(addAddress.getText());
         person.setBirthday(addBday.getText());
+        // Add a new row underneath if there is a second phone number
         if (!table.getItems().get(index).getPhoneNumber2().isBlank()) {
+            // If there was a second phone number before, remove that row so it can be updated
             if (index < data.size() - 1 && table.getItems().get(index + 1).getFirstName().isBlank()) {
                 data.remove(index + 1);
             }
+            // Add new row
             data.add(index + 1, new Person("", "", addPhoneNumber2.getText(), "", "", "", ""));
         }
+        // Refresh/update the table
         table.refresh();
+        // Write changes on csv file
         writeCSV();
     }
 
@@ -412,16 +430,18 @@ public class Table extends Application {
 
     // Method to delete contact
     public void deleteContact(Person person) {
+        // If the row under is the second phone number, delete it as well
         if (!table.getItems().get(index).getPhoneNumber2().isBlank()) {
             data.remove(index + 1);
         }
+        // Delete selected contact
         data.remove(person);
+        // Update csv file
         writeCSV();
     }
 
     // Class to represent contacts
     public static class Person {
-
         private final SimpleStringProperty firstName;
         private final SimpleStringProperty lastName;
         private final SimpleStringProperty phoneNumber;
@@ -468,6 +488,7 @@ public class Table extends Application {
             phoneNumber.set(phoneNum);
         }
 
+        // Phone Number 2
         public String getPhoneNumber2() {
             return phoneNumber2.get();
         }
