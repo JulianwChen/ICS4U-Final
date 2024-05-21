@@ -73,6 +73,7 @@ public class Table extends Application {
         firstNameCol.setCellValueFactory(new PropertyValueFactory<Person, String>("firstName"));
         firstNameCol.setCellFactory(TextFieldTableCell.forTableColumn());
         firstNameCol.setSortable(false);
+        firstNameCol.setReorderable(false);
 
         // Second Column = Last Name
         TableColumn lastNameCol = new TableColumn("Last Name");
@@ -80,6 +81,7 @@ public class Table extends Application {
         lastNameCol.setCellValueFactory(new PropertyValueFactory<Person, String>("lastName"));
         lastNameCol.setCellFactory(TextFieldTableCell.forTableColumn());
         lastNameCol.setSortable(false);
+        lastNameCol.setReorderable(false);
 
         // Third Column = Phone Number
         TableColumn phoneNumCol = new TableColumn("Phone Number");
@@ -87,6 +89,7 @@ public class Table extends Application {
         phoneNumCol.setCellValueFactory(new PropertyValueFactory<Person, String>("phoneNumber"));
         phoneNumCol.setCellFactory(TextFieldTableCell.forTableColumn());
         phoneNumCol.setSortable(false);
+        phoneNumCol.setReorderable(false);
 
         // Fourth Column = Email
         TableColumn emailCol = new TableColumn("Email");
@@ -94,6 +97,7 @@ public class Table extends Application {
         emailCol.setCellValueFactory(new PropertyValueFactory<Person, String>("email"));
         emailCol.setCellFactory(TextFieldTableCell.forTableColumn());
         emailCol.setSortable(false);
+        emailCol.setReorderable(false);
         // TODO: add multiple emails per eprson??
 
         // Fifth Column = Address
@@ -102,6 +106,7 @@ public class Table extends Application {
         addressCol.setCellValueFactory(new PropertyValueFactory<Person, String>("address"));
         addressCol.setCellFactory(TextFieldTableCell.forTableColumn());
         addressCol.setSortable(false);
+        addressCol.setReorderable(false);
 
         // Sixth Column = birthday
         TableColumn bdayCol = new TableColumn("Birthday");
@@ -109,6 +114,7 @@ public class Table extends Application {
         bdayCol.setCellValueFactory(new PropertyValueFactory<Person, String>("Birthday"));
         bdayCol.setCellFactory(TextFieldTableCell.forTableColumn());
         bdayCol.setSortable(false);
+        bdayCol.setReorderable(false);
 
         table.setItems(data);
         table.getColumns().addAll(firstNameCol, lastNameCol, phoneNumCol, emailCol, addressCol, bdayCol);
