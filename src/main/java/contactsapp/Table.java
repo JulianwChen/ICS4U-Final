@@ -77,7 +77,7 @@ public class Table extends Application {
         table.setEditable(false);
 
         // First Column = First Name
-        TableColumn firstNameCol = new TableColumn("First Name");
+        TableColumn<Person, String> firstNameCol = new TableColumn<Person, String>("First Name");
         firstNameCol.setMinWidth(100);
         firstNameCol.setCellValueFactory(new PropertyValueFactory<Person, String>("firstName"));
         firstNameCol.setCellFactory(TextFieldTableCell.forTableColumn());
@@ -85,7 +85,7 @@ public class Table extends Application {
         firstNameCol.setReorderable(false);
 
         // Second Column = Last Name
-        TableColumn lastNameCol = new TableColumn("Last Name");
+        TableColumn<Person, String> lastNameCol = new TableColumn<Person, String>("Last Name");
         lastNameCol.setMinWidth(100);
         lastNameCol.setCellValueFactory(new PropertyValueFactory<Person, String>("lastName"));
         lastNameCol.setCellFactory(TextFieldTableCell.forTableColumn());
@@ -93,7 +93,7 @@ public class Table extends Application {
         lastNameCol.setReorderable(false);
 
         // Third Column = Phone Number
-        TableColumn phoneNumCol = new TableColumn("Phone Number");
+        TableColumn<Person, String> phoneNumCol = new TableColumn<Person, String>("Phone Number");
         phoneNumCol.setMinWidth(150);
         phoneNumCol.setCellValueFactory(new PropertyValueFactory<Person, String>("phoneNumber"));
         phoneNumCol.setCellFactory(TextFieldTableCell.forTableColumn());
@@ -101,7 +101,7 @@ public class Table extends Application {
         phoneNumCol.setReorderable(false);
 
         // Fourth Column = Email
-        TableColumn emailCol = new TableColumn("Email");
+        TableColumn<Person, String> emailCol = new TableColumn<Person, String>("Email");
         emailCol.setMinWidth(200);
         emailCol.setCellValueFactory(new PropertyValueFactory<Person, String>("email"));
         emailCol.setCellFactory(TextFieldTableCell.forTableColumn());
@@ -109,7 +109,7 @@ public class Table extends Application {
         emailCol.setReorderable(false);
 
         // Fifth Column = Address
-        TableColumn addressCol = new TableColumn("Address");
+        TableColumn<Person, String> addressCol = new TableColumn<Person, String>("Address");
         addressCol.setMinWidth(200);
         addressCol.setCellValueFactory(new PropertyValueFactory<Person, String>("address"));
         addressCol.setCellFactory(TextFieldTableCell.forTableColumn());
@@ -117,7 +117,7 @@ public class Table extends Application {
         addressCol.setReorderable(false);
 
         // Sixth Column = Birthday
-        TableColumn bdayCol = new TableColumn("Birthday");
+        TableColumn<Person, String> bdayCol = new TableColumn<Person, String>("Birthday");
         bdayCol.setMinWidth(200);
         bdayCol.setCellValueFactory(new PropertyValueFactory<Person, String>("Birthday"));
         bdayCol.setCellFactory(TextFieldTableCell.forTableColumn());
@@ -125,25 +125,22 @@ public class Table extends Application {
         bdayCol.setReorderable(false);
 
         // Seventh Column = Devices registered
-        TableColumn<Person, ListView<String>> devicesCol = new TableColumn<>("Devices");
+        TableColumn<Person, ListView<String>> devicesCol = new TableColumn<Person, ListView<String>>("Devices Registered");
         devicesCol.setMinWidth(200);
         devicesCol.setCellValueFactory(deviceData -> {
             Person person = deviceData.getValue();
             ListView<String> listView = new ListView<String>();
             listView.setPrefHeight(70);
             listView.getItems().addAll(person.getDevices1());
-            if (!person.getDevices2().isEmpty()) {
-                listView.getItems().addAll(person.getDevices2());
-            }
             return new SimpleObjectProperty<>(listView);
         });
-
-        // TODO: reordder columns put phone/device together
+        devicesCol.setSortable(false);
+        devicesCol.setReorderable(false);
 
         table.setItems(data);
-        table.getColumns().addAll(firstNameCol, lastNameCol, phoneNumCol, emailCol, addressCol, bdayCol, devicesCol);
+        table.getColumns().addAll(firstNameCol, lastNameCol, emailCol, addressCol, bdayCol, phoneNumCol, devicesCol);
 
-        // Text Fields to input Contact info
+        // TextFields to input Contact info
         addFirstName.setPromptText("First Name");
         addFirstName.setMaxWidth(firstNameCol.getPrefWidth());
         addLastName.setPromptText("Last Name");
@@ -160,11 +157,11 @@ public class Table extends Application {
         addBday.setPromptText("Birthday");
         addBday.setMaxWidth(bdayCol.getPrefWidth());
 
-        // TextAreas for devices input
+        // TextAreas to input devices registered
         addDevices1.setPromptText("Devices registered for phone number 1\n(one per line)");
         addDevices1.setMaxWidth(150);
         addDevices1.setPrefRowCount(3);
-        addDevices2.setPromptText("Devices registeredfor phone number 2\n(one per line)");
+        addDevices2.setPromptText("Devices registered for phone number 2\n(one per line)");
         addDevices2.setMaxWidth(150);
         addDevices2.setPrefRowCount(3);
         addDevices2.setVisible(false);
@@ -206,7 +203,7 @@ public class Table extends Application {
                 // Contact must have first name
                 if (!addFirstName.getText().isBlank()) {
                     // Remove all commas from contact info
-                    noComma();
+                    noBad();
                     // Create new Person
                     data.add(new Person(
                         addFirstName.getText(),
@@ -260,7 +257,6 @@ public class Table extends Application {
                 addBday.setText(person.getBirthday().trim());
                 addDevices1.setText(String.join("\n", person.getDevices1()));
                 addDevices2.setText(String.join("\n", person.getDevices2()));
-                // TODO: device 2 does not show anything?
             }
         });
 
@@ -400,8 +396,8 @@ public class Table extends Application {
                     // Add second phone number to separate row if there is one
                     if (!values[3].isBlank()) {
                         data.add(new Person("", "", values[3], "", "", "", "",
-                                            FXCollections.observableArrayList(),
-                                            FXCollections.observableArrayList(values[8].split("\\|"))));
+                                            FXCollections.observableArrayList(values[8].split("\\|")),
+                                            FXCollections.observableArrayList()));
                     }
                 }
             }
@@ -413,28 +409,29 @@ public class Table extends Application {
     // Update CSV file with changes in contacts
     public void writeCSV() {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(
-                "C:\\Users\\Julia\\OneDrive\\DesktopICS4U Final\\ContactsData.csv"))) {
+                "C:\\Users\\Julia\\OneDrive\\Desktop\\ICS4U Final\\ContactsData.csv"))) {
             for (Person person : data) {
-                bw.write(person.getFirstName() + "," +
-                        person.getLastName() + "," +
-                        person.getPhoneNumber() + "," +
-                        person.getPhoneNumber2() + "," +
-                        person.getEmail() + "," +
-                        person.getAddress() + "," +
-                        person.getBirthday() + "," +
-                        String.join("|", person.getDevices1()) + "," +
-                        String.join("|", person.getDevices2()));
+                if (!person.getFirstName().isBlank()) {
+                bw.write(person.getFirstName() + " ," +
+                        person.getLastName() + " ," +
+                        person.getPhoneNumber() + " ," +
+                        person.getPhoneNumber2() + " ," +
+                        person.getEmail() + " ," +
+                        person.getAddress() + " ," +
+                        person.getBirthday() + " ," +
+                        String.join("|", person.getDevices1()) + " ," +
+                        String.join("|", person.getDevices2()) + " \n");
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-        // TODO: does not write
     }
 
     // Method to edit/update contact info
     public void editContact(Person person) {
         // Remove all commas
-        noComma();
+        noBad();
         // Update info
         person.setFirstName(addFirstName.getText());
         person.setLastName(addLastName.getText());
@@ -444,7 +441,7 @@ public class Table extends Application {
         person.setAddress(addAddress.getText());
         person.setBirthday(addBday.getText());
         person.setDevices1(noBlank(FXCollections.observableArrayList(addDevices1.getText().split("\\n"))));
-        person.setDevices2(FXCollections.observableArrayList());
+        person.setDevices2(noBlank(FXCollections.observableArrayList(addDevices2.getText().split("\\n"))));
         // Add a new row underneath if there is a second phone number
         if (!table.getItems().get(index).getPhoneNumber2().isBlank()) {
             // If there was a second phone number before, remove that row so it can be updated
@@ -453,8 +450,8 @@ public class Table extends Application {
             }
             // Add new row
             data.add(index + 1, new Person("", "", addPhoneNumber2.getText(), "", "", "", "",
-                    FXCollections.observableArrayList(),
-                    noBlank(FXCollections.observableArrayList(addDevices2.getText().split("\\n")))));
+                    noBlank(FXCollections.observableArrayList(addDevices2.getText().split("\\n"))),
+                    FXCollections.observableArrayList()));
         }
         // Refresh/update the table
         table.refresh();
@@ -475,8 +472,8 @@ public class Table extends Application {
         addDevices2.clear();
     }
 
-    // Make sure there are no commas in contact info
-    public void noComma() {
+    // Make sure there are no commas or pipes in contact info
+    public void noBad() {
         addFirstName.setText(addFirstName.getText().replaceAll(",", ""));
         addLastName.setText(addLastName.getText().replaceAll(",", ""));
         addPhoneNumber.setText(addPhoneNumber.getText().replaceAll(",", ""));
@@ -486,6 +483,16 @@ public class Table extends Application {
         addBday.setText(addBday.getText().replaceAll(",", ""));
         addDevices1.setText(addDevices1.getText().replaceAll(",", ""));
         addDevices2.setText(addDevices2.getText().replaceAll(",", ""));
+
+        addFirstName.setText(addFirstName.getText().replaceAll("|", ""));
+        addLastName.setText(addLastName.getText().replaceAll("|", ""));
+        addPhoneNumber.setText(addPhoneNumber.getText().replaceAll("|", ""));
+        addPhoneNumber2.setText(addPhoneNumber2.getText().replaceAll("|", ""));
+        addEmail.setText(addEmail.getText().replaceAll("|", ""));
+        addAddress.setText(addAddress.getText().replaceAll("|", ""));
+        addBday.setText(addBday.getText().replaceAll("|", ""));
+        addDevices1.setText(addDevices1.getText().replaceAll("|", ""));
+        addDevices2.setText(addDevices2.getText().replaceAll("|", ""));
     }
 
     // Method to delete contact
