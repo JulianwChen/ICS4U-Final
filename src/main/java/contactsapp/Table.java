@@ -202,24 +202,24 @@ public class Table extends Application {
             public void handle(ActionEvent arg0) {
                 // Contact must have first name
                 if (!addFirstName.getText().isBlank()) {
-                    // Remove all commas from contact info
+                    // Remove all commas and pipes from contact info
                     noBad();
                     // Create new Person
                     data.add(new Person(
                         addFirstName.getText(),
                         addLastName.getText(),
-                        addPhoneNumber.getText(),
-                        addPhoneNumber2.getText(),
                         addEmail.getText(),
                         addAddress.getText(),
                         addBday.getText(),
+                        addPhoneNumber.getText(),
+                        addPhoneNumber2.getText(),
                         noBlank(FXCollections.observableArrayList(addDevices1.getText().split("\\n"))),
-                        FXCollections.observableArrayList()));
+                        noBlank(FXCollections.observableArrayList(addDevices2.getText().split("\\n")))));
                     // If there is a second phone number, add it to the next row
                     if (!addPhoneNumber2.getText().isBlank()) {
-                        data.add(new Person("", "", addPhoneNumber2.getText(), "", "", "", "",
-                                            FXCollections.observableArrayList(),
-                                            noBlank(FXCollections.observableArrayList(addDevices2.getText().split("\\n")))));
+                        data.add(new Person("", "", "", "", "", addPhoneNumber2.getText(), "",
+                                            noBlank(FXCollections.observableArrayList(addDevices2.getText().split("\\n"))),
+                                            FXCollections.observableArrayList()));
                     }
                     // Clear all textfields
                     clearTextFields();
@@ -250,14 +250,15 @@ public class Table extends Application {
                 addDevices2.setVisible(true);
                 addFirstName.setText(person.getFirstName().trim());
                 addLastName.setText(person.getLastName().trim());
-                addPhoneNumber.setText(person.getPhoneNumber().trim());
-                addPhoneNumber2.setText(person.getPhoneNumber2().trim());
                 addEmail.setText(person.getEmail().trim());
                 addAddress.setText(person.getAddress().trim());
                 addBday.setText(person.getBirthday().trim());
+                addPhoneNumber.setText(person.getPhoneNumber().trim());
+                addPhoneNumber2.setText(person.getPhoneNumber2().trim());
                 addDevices1.setText(String.join("\n", person.getDevices1()));
                 addDevices2.setText(String.join("\n", person.getDevices2()));
             }
+            // TODO: does not show device2
         });
 
         // Set up update button
@@ -321,14 +322,21 @@ public class Table extends Application {
                 // Update textfield with selected contact's info
                 addFirstName.setText(person.getFirstName().trim());
                 addLastName.setText(person.getLastName().trim());
-                addPhoneNumber.setText(person.getPhoneNumber().trim());
-                addPhoneNumber2.setText(person.getPhoneNumber2().trim());
                 addEmail.setText(person.getEmail().trim());
                 addAddress.setText(person.getAddress().trim());
                 addBday.setText(person.getBirthday().trim());
+                addPhoneNumber.setText(person.getPhoneNumber().trim());
+                addPhoneNumber2.setText(person.getPhoneNumber2().trim());
                 addDevices1.setText(String.join("\n", person.getDevices1()));
                 addDevices2.setText(String.join("\n", person.getDevices2()));
             }
+            // TODO: person does not have a devices 2 on click
+            // must edit or add a contact for person to have?????
+            
+            System.out.println(person.getFirstName());
+            System.out.println(person.getPhoneNumber2());
+            System.out.println(person.getDevices1());
+            System.out.println(person.getDevices2());
         });
 
         // Resets buttons + unselect row if the user clicks away from the table
@@ -357,12 +365,12 @@ public class Table extends Application {
         hb.getChildren().addAll(addButton, editButton, updateButton, deleteButton, secondNumber);
         hb.setSpacing(3);
 
-        hb2.getChildren().addAll(addFirstName, addLastName, addEmail, addAddress, addPhoneNumber, addPhoneNumber2);
+        hb2.getChildren().addAll(addFirstName, addLastName, addEmail, addAddress, addBday, addPhoneNumber, addPhoneNumber2);
         hb2.setSpacing(3);
 
         // Empty space to line up phone number/devices text fields
         Region space = new Region();
-        space.setMinWidth(330);
+        space.setMinWidth(412);
 
         hbDevices.getChildren().addAll(space, addDevices1, addDevices2);
         hbDevices.setSpacing(3);
@@ -394,8 +402,8 @@ public class Table extends Application {
                                         FXCollections.observableArrayList(values[7].split("\\|")),
                                         FXCollections.observableArrayList()));
                     // Add second phone number to separate row if there is one
-                    if (!values[3].isBlank()) {
-                        data.add(new Person("", "", values[3], "", "", "", "",
+                    if (!values[6].isBlank()) {
+                        data.add(new Person("", "", "", "", "", values[6], "",
                                             FXCollections.observableArrayList(values[8].split("\\|")),
                                             FXCollections.observableArrayList()));
                     }
@@ -412,13 +420,13 @@ public class Table extends Application {
                 "C:\\Users\\Julia\\OneDrive\\Desktop\\ICS4U Final\\ContactsData.csv"))) {
             for (Person person : data) {
                 if (!person.getFirstName().isBlank()) {
-                bw.write(person.getFirstName() + " ," +
-                        person.getLastName() + " ," +
-                        person.getPhoneNumber() + " ," +
-                        person.getPhoneNumber2() + " ," +
-                        person.getEmail() + " ," +
-                        person.getAddress() + " ," +
-                        person.getBirthday() + " ," +
+                bw.write(person.getFirstName().trim() + " ," +
+                        person.getLastName().trim() + " ," +
+                        person.getEmail().trim() + " ," +
+                        person.getAddress().trim() + " ," +
+                        person.getBirthday().trim() + " ," +
+                        person.getPhoneNumber().trim() + " ," +
+                        person.getPhoneNumber2().trim() + " ," +
                         String.join("|", person.getDevices1()) + " ," +
                         String.join("|", person.getDevices2()) + " \n");
                 }
@@ -430,16 +438,29 @@ public class Table extends Application {
 
     // Method to edit/update contact info
     public void editContact(Person person) {
-        // Remove all commas
+        // Remove all commas and pipes
         noBad();
+
+        // Boolean variables to check if there was ever a second phone number or device
+        boolean device2, phone2;
+        if (person.getDevices2().isEmpty()) {
+            device2 = false;
+        } else {
+            device2 = true;
+        }
+        if (person.getPhoneNumber2().isBlank()) {
+            phone2 = false;
+        } else {
+            phone2 = true;
+        }
         // Update info
         person.setFirstName(addFirstName.getText());
         person.setLastName(addLastName.getText());
-        person.setPhoneNumber(addPhoneNumber.getText());
-        person.setPhoneNumber2(addPhoneNumber2.getText());
         person.setEmail(addEmail.getText());
         person.setAddress(addAddress.getText());
         person.setBirthday(addBday.getText());
+        person.setPhoneNumber(addPhoneNumber.getText());
+        person.setPhoneNumber2(addPhoneNumber2.getText());
         person.setDevices1(noBlank(FXCollections.observableArrayList(addDevices1.getText().split("\\n"))));
         person.setDevices2(noBlank(FXCollections.observableArrayList(addDevices2.getText().split("\\n"))));
         // Add a new row underneath if there is a second phone number
@@ -449,9 +470,12 @@ public class Table extends Application {
                 data.remove(index + 1);
             }
             // Add new row
-            data.add(index + 1, new Person("", "", addPhoneNumber2.getText(), "", "", "", "",
+            data.add(index + 1, new Person("", "", "", "", "", addPhoneNumber2.getText(), "",
                     noBlank(FXCollections.observableArrayList(addDevices2.getText().split("\\n"))),
                     FXCollections.observableArrayList()));
+        } else if (phone2 && table.getItems().get(index).getPhoneNumber2().isBlank()) {
+            // If the user removes the second phone number, delete that row
+            data.remove(index + 1);
         }
         // Refresh/update the table
         table.refresh();
@@ -463,11 +487,11 @@ public class Table extends Application {
     public void clearTextFields() {
         addFirstName.clear();
         addLastName.clear();
-        addPhoneNumber.clear();
-        addPhoneNumber2.clear();
         addEmail.clear();
         addAddress.clear();
         addBday.clear();
+        addPhoneNumber.clear();
+        addPhoneNumber2.clear();
         addDevices1.clear();
         addDevices2.clear();
     }
@@ -476,21 +500,21 @@ public class Table extends Application {
     public void noBad() {
         addFirstName.setText(addFirstName.getText().replaceAll(",", ""));
         addLastName.setText(addLastName.getText().replaceAll(",", ""));
-        addPhoneNumber.setText(addPhoneNumber.getText().replaceAll(",", ""));
-        addPhoneNumber2.setText(addPhoneNumber2.getText().replaceAll(",", ""));
         addEmail.setText(addEmail.getText().replaceAll(",", ""));
         addAddress.setText(addAddress.getText().replaceAll(",", ""));
         addBday.setText(addBday.getText().replaceAll(",", ""));
+        addPhoneNumber.setText(addPhoneNumber.getText().replaceAll(",", ""));
+        addPhoneNumber2.setText(addPhoneNumber2.getText().replaceAll(",", ""));
         addDevices1.setText(addDevices1.getText().replaceAll(",", ""));
         addDevices2.setText(addDevices2.getText().replaceAll(",", ""));
 
         addFirstName.setText(addFirstName.getText().replaceAll("|", ""));
         addLastName.setText(addLastName.getText().replaceAll("|", ""));
-        addPhoneNumber.setText(addPhoneNumber.getText().replaceAll("|", ""));
-        addPhoneNumber2.setText(addPhoneNumber2.getText().replaceAll("|", ""));
         addEmail.setText(addEmail.getText().replaceAll("|", ""));
         addAddress.setText(addAddress.getText().replaceAll("|", ""));
         addBday.setText(addBday.getText().replaceAll("|", ""));
+        addPhoneNumber.setText(addPhoneNumber.getText().replaceAll("|", ""));
+        addPhoneNumber2.setText(addPhoneNumber2.getText().replaceAll("|", ""));
         addDevices1.setText(addDevices1.getText().replaceAll("|", ""));
         addDevices2.setText(addDevices2.getText().replaceAll("|", ""));
     }
@@ -507,12 +531,12 @@ public class Table extends Application {
         writeCSV();
     }
 
-    // Method to remove all blank lines in the devices TextArea
+    // Method to remove all blank lines and beginning/trailing blank spaces in the devices TextArea
     public ObservableList<String> noBlank(ObservableList<String> list) {
         ObservableList<String> good = FXCollections.observableArrayList();
         for (String x : list) {
             if (!x.isBlank()) {
-                good.add(x);
+                good.add(x.trim());
             }
         }
         return good;
@@ -530,7 +554,7 @@ public class Table extends Application {
         private final SimpleListProperty<String> devices1;
         private final SimpleListProperty<String> devices2;
 
-        private Person(String fName, String lName, String pNum, String pNum2, String email, String address, String bday,
+        private Person(String fName, String lName, String email, String address, String bday, String pNum, String pNum2,
                         ObservableList<String> devices1, ObservableList<String> devices2) {
             this.firstName = new SimpleStringProperty(fName);
             this.lastName = new SimpleStringProperty(lName);
