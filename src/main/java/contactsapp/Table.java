@@ -158,10 +158,10 @@ public class Table extends Application {
         addBday.setMaxWidth(bdayCol.getPrefWidth());
 
         // TextAreas to input devices registered
-        addDevices1.setPromptText("Devices registered for phone number 1\n(one per line)");
+        addDevices1.setPromptText("Devices registered for phone number 1 (one per line)");
         addDevices1.setMaxWidth(150);
         addDevices1.setPrefRowCount(3);
-        addDevices2.setPromptText("Devices registered for phone number 2\n(one per line)");
+        addDevices2.setPromptText("Devices registered for phone number 2 (one per line)");
         addDevices2.setMaxWidth(150);
         addDevices2.setPrefRowCount(3);
         addDevices2.setVisible(false);
@@ -258,7 +258,6 @@ public class Table extends Application {
                 addDevices1.setText(String.join("\n", person.getDevices1()));
                 addDevices2.setText(String.join("\n", person.getDevices2()));
             }
-            // TODO: does not show device2
         });
 
         // Set up update button
@@ -330,8 +329,6 @@ public class Table extends Application {
                 addDevices1.setText(String.join("\n", person.getDevices1()));
                 addDevices2.setText(String.join("\n", person.getDevices2()));
             }
-            // TODO: person does not have a devices 2 on click
-            // must edit or add a contact for person to have?????
         });
 
         // Resets buttons + unselect row if the user clicks away from the table
@@ -396,7 +393,7 @@ public class Table extends Application {
                     data.add(new Person(values[0].trim(), values[1].trim(), values[2].trim(), values[3].trim(),
                                         values[4].trim(), values[5].trim(), values[6].trim(),
                                         FXCollections.observableArrayList(values[7].trim().split("\\|")),
-                                        FXCollections.observableArrayList()));
+                                        FXCollections.observableArrayList(values[8].trim().split("\\|"))));
                     // Add second phone number to separate row if there is one
                     if (!values[6].isBlank()) {
                         data.add(new Person("", "", "", "", "", values[6].trim(), "",
@@ -498,15 +495,8 @@ public class Table extends Application {
         addDevices1.setText(addDevices1.getText().replaceAll(",", ""));
         addDevices2.setText(addDevices2.getText().replaceAll(",", ""));
 
-        addFirstName.setText(addFirstName.getText().replaceAll("|", ""));
-        addLastName.setText(addLastName.getText().replaceAll("|", ""));
-        addEmail.setText(addEmail.getText().replaceAll("|", ""));
-        addAddress.setText(addAddress.getText().replaceAll("|", ""));
-        addBday.setText(addBday.getText().replaceAll("|", ""));
-        addPhoneNumber.setText(addPhoneNumber.getText().replaceAll("|", ""));
-        addPhoneNumber2.setText(addPhoneNumber2.getText().replaceAll("|", ""));
-        addDevices1.setText(addDevices1.getText().replaceAll("|", ""));
-        addDevices2.setText(addDevices2.getText().replaceAll("|", ""));
+        addDevices1.setText(addDevices1.getText().replaceAll("\\|", ""));
+        addDevices2.setText(addDevices2.getText().replaceAll("\\|", ""));
     }
 
     // Method to delete contact
