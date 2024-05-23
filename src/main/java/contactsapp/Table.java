@@ -206,18 +206,18 @@ public class Table extends Application {
                     noBad();
                     // Create new Person
                     data.add(new Person(
-                        addFirstName.getText(),
-                        addLastName.getText(),
-                        addEmail.getText(),
-                        addAddress.getText(),
-                        addBday.getText(),
-                        addPhoneNumber.getText(),
-                        addPhoneNumber2.getText(),
+                        addFirstName.getText().trim(),
+                        addLastName.getText().trim(),
+                        addEmail.getText().trim(),
+                        addAddress.getText().trim(),
+                        addBday.getText().trim(),
+                        addPhoneNumber.getText().trim(),
+                        addPhoneNumber2.getText().trim(),
                         noBlank(FXCollections.observableArrayList(addDevices1.getText().split("\\n"))),
                         noBlank(FXCollections.observableArrayList(addDevices2.getText().split("\\n")))));
                     // If there is a second phone number, add it to the next row
                     if (!addPhoneNumber2.getText().isBlank()) {
-                        data.add(new Person("", "", "", "", "", addPhoneNumber2.getText(), "",
+                        data.add(new Person("", "", "", "", "", addPhoneNumber2.getText().trim(), "",
                                             noBlank(FXCollections.observableArrayList(addDevices2.getText().split("\\n"))),
                                             FXCollections.observableArrayList()));
                     }
@@ -248,13 +248,13 @@ public class Table extends Application {
                 secondNumber.setVisible(false);
                 addPhoneNumber2.setVisible(true);
                 addDevices2.setVisible(true);
-                addFirstName.setText(person.getFirstName().trim());
-                addLastName.setText(person.getLastName().trim());
-                addEmail.setText(person.getEmail().trim());
-                addAddress.setText(person.getAddress().trim());
-                addBday.setText(person.getBirthday().trim());
-                addPhoneNumber.setText(person.getPhoneNumber().trim());
-                addPhoneNumber2.setText(person.getPhoneNumber2().trim());
+                addFirstName.setText(person.getFirstName());
+                addLastName.setText(person.getLastName());
+                addEmail.setText(person.getEmail());
+                addAddress.setText(person.getAddress());
+                addBday.setText(person.getBirthday());
+                addPhoneNumber.setText(person.getPhoneNumber());
+                addPhoneNumber2.setText(person.getPhoneNumber2());
                 addDevices1.setText(String.join("\n", person.getDevices1()));
                 addDevices2.setText(String.join("\n", person.getDevices2()));
             }
@@ -295,7 +295,7 @@ public class Table extends Application {
             }
         });
 
-        // Add selection listener to TableViewto check if the user clicks on a row
+        // Add selection listener to TableView to check if the user clicks on a row
         table.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
             // Gets the index of the clicked row
             if (table.getSelectionModel().getSelectedIndex() >= 0) {
@@ -315,28 +315,23 @@ public class Table extends Application {
             } else if (newSelection != null && updateButton.isVisible()) {
                 person = newSelection;
                 // The index of the second phone number is the same as the contact
-                // Show full conatct info when user clicks on second phone number(instead of only showing that row's info)
+                // Show full contact info when user clicks on second phone number(instead of only showing that row's info)
                 if (index > 0 && !table.getItems().get(index - 1).getPhoneNumber2().isBlank()) {
                     person = table.getItems().get(--index);
                 }
                 // Update textfield with selected contact's info
-                addFirstName.setText(person.getFirstName().trim());
-                addLastName.setText(person.getLastName().trim());
-                addEmail.setText(person.getEmail().trim());
-                addAddress.setText(person.getAddress().trim());
-                addBday.setText(person.getBirthday().trim());
-                addPhoneNumber.setText(person.getPhoneNumber().trim());
-                addPhoneNumber2.setText(person.getPhoneNumber2().trim());
+                addFirstName.setText(person.getFirstName());
+                addLastName.setText(person.getLastName());
+                addEmail.setText(person.getEmail());
+                addAddress.setText(person.getAddress());
+                addBday.setText(person.getBirthday());
+                addPhoneNumber.setText(person.getPhoneNumber());
+                addPhoneNumber2.setText(person.getPhoneNumber2());
                 addDevices1.setText(String.join("\n", person.getDevices1()));
                 addDevices2.setText(String.join("\n", person.getDevices2()));
             }
             // TODO: person does not have a devices 2 on click
             // must edit or add a contact for person to have?????
-            
-            System.out.println(person.getFirstName());
-            System.out.println(person.getPhoneNumber2());
-            System.out.println(person.getDevices1());
-            System.out.println(person.getDevices2());
         });
 
         // Resets buttons + unselect row if the user clicks away from the table
@@ -398,13 +393,14 @@ public class Table extends Application {
                 String[] values = line.split(",");
                 if (values.length == 9) { // to prevent ArrayIndexOutOfBoundsException
                     // Add all contacts
-                    data.add(new Person(values[0], values[1], values[2], values[3], values[4], values[5], values[6],
-                                        FXCollections.observableArrayList(values[7].split("\\|")),
+                    data.add(new Person(values[0].trim(), values[1].trim(), values[2].trim(), values[3].trim(),
+                                        values[4].trim(), values[5].trim(), values[6].trim(),
+                                        FXCollections.observableArrayList(values[7].trim().split("\\|")),
                                         FXCollections.observableArrayList()));
                     // Add second phone number to separate row if there is one
                     if (!values[6].isBlank()) {
-                        data.add(new Person("", "", "", "", "", values[6], "",
-                                            FXCollections.observableArrayList(values[8].split("\\|")),
+                        data.add(new Person("", "", "", "", "", values[6].trim(), "",
+                                            FXCollections.observableArrayList(values[8].trim().split("\\|")),
                                             FXCollections.observableArrayList()));
                     }
                 }
@@ -420,13 +416,13 @@ public class Table extends Application {
                 "C:\\Users\\Julia\\OneDrive\\Desktop\\ICS4U Final\\ContactsData.csv"))) {
             for (Person person : data) {
                 if (!person.getFirstName().isBlank()) {
-                bw.write(person.getFirstName().trim() + " ," +
-                        person.getLastName().trim() + " ," +
-                        person.getEmail().trim() + " ," +
-                        person.getAddress().trim() + " ," +
-                        person.getBirthday().trim() + " ," +
-                        person.getPhoneNumber().trim() + " ," +
-                        person.getPhoneNumber2().trim() + " ," +
+                bw.write(person.getFirstName() + " ," +
+                        person.getLastName() + " ," +
+                        person.getEmail() + " ," +
+                        person.getAddress() + " ," +
+                        person.getBirthday() + " ," +
+                        person.getPhoneNumber() + " ," +
+                        person.getPhoneNumber2() + " ," +
                         String.join("|", person.getDevices1()) + " ," +
                         String.join("|", person.getDevices2()) + " \n");
                 }
@@ -440,27 +436,21 @@ public class Table extends Application {
     public void editContact(Person person) {
         // Remove all commas and pipes
         noBad();
-
         // Boolean variables to check if there was ever a second phone number or device
-        boolean device2, phone2;
-        if (person.getDevices2().isEmpty()) {
-            device2 = false;
-        } else {
-            device2 = true;
-        }
+        boolean phone2;
         if (person.getPhoneNumber2().isBlank()) {
             phone2 = false;
         } else {
             phone2 = true;
         }
         // Update info
-        person.setFirstName(addFirstName.getText());
-        person.setLastName(addLastName.getText());
-        person.setEmail(addEmail.getText());
-        person.setAddress(addAddress.getText());
-        person.setBirthday(addBday.getText());
-        person.setPhoneNumber(addPhoneNumber.getText());
-        person.setPhoneNumber2(addPhoneNumber2.getText());
+        person.setFirstName(addFirstName.getText().trim());
+        person.setLastName(addLastName.getText().trim());
+        person.setEmail(addEmail.getText().trim());
+        person.setAddress(addAddress.getText().trim());
+        person.setBirthday(addBday.getText().trim());
+        person.setPhoneNumber(addPhoneNumber.getText().trim());
+        person.setPhoneNumber2(addPhoneNumber2.getText().trim());
         person.setDevices1(noBlank(FXCollections.observableArrayList(addDevices1.getText().split("\\n"))));
         person.setDevices2(noBlank(FXCollections.observableArrayList(addDevices2.getText().split("\\n"))));
         // Add a new row underneath if there is a second phone number
