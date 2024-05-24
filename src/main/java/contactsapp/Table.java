@@ -20,6 +20,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
@@ -33,6 +34,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
+import javafx.util.Callback;
 
 public class Table extends Application {
 
@@ -80,7 +82,28 @@ public class Table extends Application {
         TableColumn<Person, String> firstNameCol = new TableColumn<Person, String>("First Name");
         firstNameCol.setMinWidth(100);
         firstNameCol.setCellValueFactory(new PropertyValueFactory<Person, String>("firstName"));
-        firstNameCol.setCellFactory(TextFieldTableCell.forTableColumn());
+        // Change the colour of the contact's first name depending on how long it is
+        firstNameCol.setCellFactory(new Callback<TableColumn<Person, String>, TableCell<Person, String>>() {
+            @Override
+            public TableCell<Person, String> call(TableColumn<Person, String> column) {
+                return new TableCell<Person, String>() {
+                    @Override
+                    protected void updateItem(String item, boolean empty) {
+                        if (item != null && !empty) {
+                            setText(item);
+                            if (item.length() > 5) {
+                                setStyle("-fx-text-fill: darkred;");
+                            } else {
+                                setStyle("-fx-text-fill: darkgreen;");
+                            }
+                        } else {
+                            setText(null);
+                            setStyle("");
+                        }
+                    }
+                };
+            }
+        });
         firstNameCol.setSortable(false);
         firstNameCol.setReorderable(false);
 
@@ -165,7 +188,6 @@ public class Table extends Application {
         addDevices2.setMaxWidth(150);
         addDevices2.setPrefRowCount(3);
         addDevices2.setVisible(false);
-        // TODO: make prompt text have brackets in new line
 
         // Second phone number checkbox, set to false
         secondNumber.setSelected(false);
