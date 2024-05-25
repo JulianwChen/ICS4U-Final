@@ -443,15 +443,17 @@ public class Table extends Application {
             for (Person person : data) {
                 // Separate properties with commas
                 // Separate devices registered with pipes
-                bw.write(person.getFirstName() + " ," +
-                        person.getLastName() + " ," +
-                        person.getEmail() + " ," +
-                        person.getAddress() + " ," +
-                        person.getBirthday() + " ," +
-                        person.getPhoneNumber() + " ," +
-                        person.getPhoneNumber2() + " ," +
-                        String.join("|", person.getDevices1()) + " ," +
-                        String.join("|", person.getDevices2()) + " \n");
+                if (!person.getFirstName().isBlank()) {
+                    bw.write(person.getFirstName() + " ," +
+                            person.getLastName() + " ," +
+                            person.getEmail() + " ," +
+                            person.getAddress() + " ," +
+                            person.getBirthday() + " ," +
+                            person.getPhoneNumber() + " ," +
+                            person.getPhoneNumber2() + " ," +
+                            String.join("|", person.getDevices1()) + " ," +
+                            String.join("|", person.getDevices2()) + " \n");
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
