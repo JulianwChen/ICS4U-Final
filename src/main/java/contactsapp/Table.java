@@ -224,7 +224,7 @@ public class Table extends Application {
             @Override
             public void handle(ActionEvent arg0) {
                 // Contact must have first name
-                if (!addFirstName.getText().isBlank()) {
+                if (!addFirstName.getText().isBlank() && !addFirstName.getText().contains(",")) {
                     // Remove all commas and pipes from contact info
                     noBad();
                     // Create new Person
@@ -290,7 +290,7 @@ public class Table extends Application {
             public void handle(ActionEvent arg0) {
                 // Update contact info as long as contact has a first name
                 // Reset all buttons
-                if (!addFirstName.getText().isBlank()) {
+                if (!addFirstName.getText().isBlank() && !addFirstName.getText().contains(",")) {
                     addButton.setDisable(false);
                     updateButton.setVisible(false);
                     secondNumber.setVisible(true);
