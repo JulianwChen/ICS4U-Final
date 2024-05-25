@@ -160,6 +160,7 @@ public class Table extends Application {
         devicesCol.setSortable(false);
         devicesCol.setReorderable(false);
 
+        // Add all the columns to the table
         table.setItems(data);
         table.getColumns().addAll(firstNameCol, lastNameCol, emailCol, addressCol, bdayCol, phoneNumCol, devicesCol);
 
@@ -191,7 +192,7 @@ public class Table extends Application {
 
         // Second phone number checkbox, set to false
         secondNumber.setSelected(false);
-        // Show the second phone number textfield accordingly
+        // Show the second phone number textfield and devices registered accordingly
         secondNumber.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent arg0) {
@@ -261,7 +262,7 @@ public class Table extends Application {
             @Override
             public void handle(ActionEvent arg0) {
                 // Enter edit mode
-                // Hide all other functions other than update
+                // Hide all functions other than update button
                 // Update textfields with contact info so user can edit
                 updateButton.setVisible(true);
                 addButton.setDisable(true);
@@ -375,7 +376,7 @@ public class Table extends Application {
             return row;
         });
 
-        // Add Everything
+        // Add Everything to HBoxes
         hb.getChildren().addAll(addButton, editButton, updateButton, deleteButton, secondNumber);
         hb.setSpacing(3);
 
@@ -389,6 +390,7 @@ public class Table extends Application {
         hbDevices.getChildren().addAll(space, addDevices1, addDevices2);
         hbDevices.setSpacing(3);
 
+        // Add everything to VBox
         final VBox vbox = new VBox();
         vbox.setSpacing(5);
         vbox.setPadding(new Insets(10, 0, 0, 10));
@@ -406,12 +408,15 @@ public class Table extends Application {
     // Read from CSV file and populate contacts app
     public void readCSV() {
         try (Scanner scan = new Scanner(
+                // Reference the CSV file
                 new File("C:\\Users\\Julia\\OneDrive\\Desktop\\ICS4U Final\\ContactsData.csv"))) {
+            // Add contacts one at a time
             while (scan.hasNextLine()) {
                 String line = scan.nextLine();
+                // Separate all contact information and put them into a String[]
                 String[] values = line.split(",");
                 if (values.length == 9) { // to prevent ArrayIndexOutOfBoundsException
-                    // Add all contacts
+                    // Add all contact information
                     data.add(new Person(values[0].trim(), values[1].trim(), values[2].trim(), values[3].trim(),
                                         values[4].trim(), values[5].trim(), values[6].trim(),
                                         FXCollections.observableArrayList(values[7].trim().split("\\|")),
@@ -432,9 +437,12 @@ public class Table extends Application {
     // Update CSV file with changes in contacts
     public void writeCSV() {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(
+                // Write to the CSV file
                 "C:\\Users\\Julia\\OneDrive\\Desktop\\ICS4U Final\\ContactsData.csv"))) {
+            // Write data one contact at a time
             for (Person person : data) {
-                if (!person.getFirstName().isBlank()) {
+                // Separate properties with commas
+                // Separate devices registered with pipes
                 bw.write(person.getFirstName() + " ," +
                         person.getLastName() + " ," +
                         person.getEmail() + " ," +
@@ -444,7 +452,6 @@ public class Table extends Application {
                         person.getPhoneNumber2() + " ," +
                         String.join("|", person.getDevices1()) + " ," +
                         String.join("|", person.getDevices2()) + " \n");
-                }
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -472,13 +479,13 @@ public class Table extends Application {
         person.setPhoneNumber2(addPhoneNumber2.getText().trim());
         person.setDevices1(noBlank(FXCollections.observableArrayList(addDevices1.getText().split("\\n"))));
         person.setDevices2(noBlank(FXCollections.observableArrayList(addDevices2.getText().split("\\n"))));
-        // Add a new row underneath if there is a second phone number
+        // Add a new row underneath main row if there is a second phone number
         if (!table.getItems().get(index).getPhoneNumber2().isBlank()) {
-            // If there was a second phone number before, remove that row so it can be updated
+            // If there was already a second phone number, remove that row first before creating the new updated one
             if (index < data.size() - 1 && table.getItems().get(index + 1).getFirstName().isBlank()) {
                 data.remove(index + 1);
             }
-            // Add new row
+            // Create a new row with second phone number and its devices registered
             data.add(index + 1, new Person("", "", "", "", "", addPhoneNumber2.getText(), "",
                     noBlank(FXCollections.observableArrayList(addDevices2.getText().split("\\n"))),
                     FXCollections.observableArrayList()));
@@ -505,7 +512,7 @@ public class Table extends Application {
         addDevices2.clear();
     }
 
-    // Make sure there are no commas or pipes in contact info
+    // Method to make sure there are no commas or pipes in contact info
     public void noBad() {
         addFirstName.setText(addFirstName.getText().replaceAll(",", ""));
         addLastName.setText(addLastName.getText().replaceAll(",", ""));
@@ -533,7 +540,7 @@ public class Table extends Application {
         writeCSV();
     }
 
-    // Method to remove all blank lines and beginning/trailing blank spaces in the devices TextArea
+    // Method to remove all blank lines and leading/trailing blank spaces in the devices registered TextArea
     public ObservableList<String> noBlank(ObservableList<String> list) {
         ObservableList<String> good = FXCollections.observableArrayList();
         for (String x : list) {
